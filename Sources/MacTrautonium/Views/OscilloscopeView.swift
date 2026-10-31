@@ -9,16 +9,15 @@ public struct OscilloscopeView: View {
 
     public var body: some View {
         Canvas { context, size in
-            // Background Grid Lines
             let midY = size.height * 0.5
-            let gridColor = Color.green.opacity(0.12)
 
+            // Graticule Divisions
             for i in 1..<4 {
                 let y = size.height * CGFloat(i) / 4.0
                 var hLine = Path()
                 hLine.move(to: CGPoint(x: 0, y: y))
                 hLine.addLine(to: CGPoint(x: size.width, y: y))
-                context.stroke(hLine, with: .color(gridColor), lineWidth: 0.8)
+                context.stroke(hLine, with: .color(TrautoniumTheme.crtGraticule), lineWidth: 0.5)
             }
 
             for i in 1..<8 {
@@ -26,41 +25,41 @@ public struct OscilloscopeView: View {
                 var vLine = Path()
                 vLine.move(to: CGPoint(x: x, y: 0))
                 vLine.addLine(to: CGPoint(x: x, y: size.height))
-                context.stroke(vLine, with: .color(gridColor), lineWidth: 0.8)
+                context.stroke(vLine, with: .color(TrautoniumTheme.crtGraticule), lineWidth: 0.5)
             }
 
-            // Waveform Path
+            // Center Reference Axis
+            var centerLine = Path()
+            centerLine.move(to: CGPoint(x: 0, y: midY))
+            centerLine.addLine(to: CGPoint(x: size.width, y: midY))
+            context.stroke(centerLine, with: .color(TrautoniumTheme.crtGraticule.opacity(1.5)), lineWidth: 0.75)
+
+            // Waveform Trace
             guard waveform.count > 1 else { return }
             var wavePath = Path()
             let stepX = size.width / CGFloat(waveform.count - 1)
 
-            let firstY = midY - CGFloat(waveform[0]) * midY * 0.85
+            let firstY = midY - CGFloat(waveform[0]) * midY * 0.82
             wavePath.move(to: CGPoint(x: 0, y: firstY))
 
             for i in 1..<waveform.count {
                 let x = CGFloat(i) * stepX
-                let y = midY - CGFloat(waveform[i]) * midY * 0.85
+                let y = midY - CGFloat(waveform[i]) * midY * 0.82
                 wavePath.addLine(to: CGPoint(x: x, y: y))
             }
 
-            // Glow Stroke
+            // Single crisp phosphor beam trace
             context.stroke(
                 wavePath,
-                with: .color(Color(red: 0.3, green: 1.0, blue: 0.5).opacity(0.4)),
-                lineWidth: 4
-            )
-            // Crisp Core Stroke
-            context.stroke(
-                wavePath,
-                with: .color(Color(red: 0.5, green: 1.0, blue: 0.6)),
-                lineWidth: 1.5
+                with: .color(TrautoniumTheme.crtTrace),
+                lineWidth: 1.2
             )
         }
-        .background(Color(red: 0.04, green: 0.08, blue: 0.05))
-        .cornerRadius(12)
+        .background(TrautoniumTheme.crtBg)
+        .cornerRadius(8)
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color(red: 0.15, green: 0.35, blue: 0.2), lineWidth: 1.5)
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(TrautoniumTheme.hairline, lineWidth: 1)
         )
     }
 }

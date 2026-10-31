@@ -31,8 +31,8 @@ public struct GlobalSettingsView: View {
 
     public var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 20) {
-                // Musical Scale & Magnetic Attraction
+            VStack(spacing: 16) {
+                // Musical Scales & Magnetic Attraction
                 scaleAndSnapSection
 
                 // Audio Routing & MIDI / MPE Output
@@ -49,8 +49,8 @@ public struct GlobalSettingsView: View {
     }
 
     private var scaleAndSnapSection: some View {
-        GroupBox(label: sectionHeader("Musical Scales & Magnetic Attraction (Snap)", icon: "music.note.list")) {
-            VStack(alignment: .leading, spacing: 14) {
+        cardContainer(title: "Musical scales & attraction") {
+            VStack(alignment: .leading, spacing: 12) {
                 // Category Filter Pills
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
@@ -61,7 +61,6 @@ public struct GlobalSettingsView: View {
                             let count = Scales.all.filter { $0.category == cat }.count
                             categoryPill(title: "\(cat.rawValue) (\(count))", isSelected: selectedCategory == cat) {
                                 selectedCategory = cat
-                                // If currently selected scale is not in this category, select the first in this category
                                 let current = (state.patch.scaleIndex < Scales.all.count) ? Scales.all[state.patch.scaleIndex] : Scales.all[0]
                                 if current.category != cat {
                                     if let firstIdx = Scales.all.firstIndex(where: { $0.category == cat }) {
@@ -75,12 +74,12 @@ public struct GlobalSettingsView: View {
                     .padding(.vertical, 2)
                 }
 
-                HStack(spacing: 20) {
+                HStack(spacing: 16) {
                     // Scale Picker
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("SCALE (\(filteredScaleIndices.count) AVAILABLE)")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Scale (\(filteredScaleIndices.count) available)")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Picker("", selection: patchBinding.scaleIndex) {
                             if let cat = selectedCategory {
                                 ForEach(Scales.all.indices.filter { Scales.all[$0].category == cat }, id: \.self) { idx in
@@ -102,23 +101,23 @@ public struct GlobalSettingsView: View {
 
                     // Key / Tonic
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("KEY / TONIC")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Root note")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Picker("", selection: patchBinding.tonic) {
                             ForEach(0..<12, id: \.self) { pc in
                                 Text(Scales.tonicNames[pc]).tag(pc)
                             }
                         }
                         .labelsHidden()
-                        .frame(width: 90)
+                        .frame(width: 80)
                     }
 
-                    // Snap Mode for Manual I
+                    // Snap Mode for Manual 1
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("MANUAL I SNAP")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Manual 1 snap")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Picker("", selection: patchBinding.manuals[0].snapMode) {
                             ForEach(SnapMode.allCases, id: \.self) { mode in
                                 Text(mode.title).tag(mode)
@@ -127,12 +126,12 @@ public struct GlobalSettingsView: View {
                         .pickerStyle(.segmented)
                     }
 
-                    // Snap Mode for Manual II
+                    // Snap Mode for Manual 2
                     if state.patch.isSplit {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("MANUAL II SNAP")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(.secondary)
+                            Text("Manual 2 snap")
+                                .font(.system(size: 11, weight: .regular))
+                                .foregroundColor(TrautoniumTheme.textSecondary)
                             Picker("", selection: patchBinding.manuals[1].snapMode) {
                                 ForEach(SnapMode.allCases, id: \.self) { mode in
                                     Text(mode.title).tag(mode)
@@ -147,17 +146,17 @@ public struct GlobalSettingsView: View {
                 scaleNotesBanner
 
                 HStack {
-                    Text("Magnetic Attraction Time: \(Int(prefsBinding.wrappedValue.snapSpeedMs)) ms")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(.secondary)
+                    Text("Attraction time: \(Int(prefsBinding.wrappedValue.snapSpeedMs)) ms")
+                        .font(.system(size: 11, weight: .regular))
+                        .foregroundColor(TrautoniumTheme.textSecondary)
                     Slider(value: prefsBinding.snapSpeedMs, in: 20...300)
-                        .frame(width: 200)
+                        .frame(width: 160)
                     Spacer()
-                    Toggle("Split Trackpad (Upper / Lower Manuals)", isOn: patchBinding.isSplit)
-                        .font(.system(size: 11, weight: .medium))
+                    Toggle("Split trackpad (Upper / lower manuals)", isOn: patchBinding.isSplit)
+                        .font(.system(size: 11, weight: .regular))
+                        .foregroundColor(TrautoniumTheme.textSecondary)
                 }
             }
-            .padding(.top, 8)
         }
     }
 
@@ -169,28 +168,28 @@ public struct GlobalSettingsView: View {
     }
 
     private var midiAndMPESection: some View {
-        GroupBox(label: sectionHeader("Audio Routing & MIDI / MPE Output", icon: "pianokeys")) {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack(spacing: 20) {
+        cardContainer(title: "Audio & MIDI routing") {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 16) {
                     // Global Output Routing Mode
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("GLOBAL ROUTING")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Routing mode")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Picker("", selection: prefsBinding.routingMode) {
                             ForEach(OutputRoutingMode.allCases, id: \.self) { mode in
                                 Text(mode.title).tag(mode)
                             }
                         }
                         .pickerStyle(.segmented)
-                        .frame(minWidth: 260)
+                        .frame(minWidth: 240)
                     }
 
                     // MIDI Protocol (MPE vs Standard)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("MIDI PROTOCOL")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Protocol")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Picker("", selection: prefsBinding.midiMode) {
                             ForEach(MIDIMode.allCases, id: \.self) { mode in
                                 Text(mode.title).tag(mode)
@@ -202,46 +201,46 @@ public struct GlobalSettingsView: View {
                     // MPE Pitch Bend Range or Base Channel
                     if prefsBinding.wrappedValue.midiMode == .mpe {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("MPE BEND RANGE")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(.secondary)
+                            Text("MPE bend range")
+                                .font(.system(size: 11, weight: .regular))
+                                .foregroundColor(TrautoniumTheme.textSecondary)
                             Picker("", selection: prefsBinding.mpeBendRange) {
-                                Text("±12 Semis").tag(12)
-                                Text("±24 Semis").tag(24)
-                                Text("±48 Semis (MPE Std)").tag(48)
-                                Text("±96 Semis").tag(96)
+                                Text("±12 semis").tag(12)
+                                Text("±24 semis").tag(24)
+                                Text("±48 semis (MPE std)").tag(48)
+                                Text("±96 semis").tag(96)
                             }
-                            .frame(width: 170)
+                            .frame(width: 160)
                         }
                     } else {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("BASE MIDI CHANNEL")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(.secondary)
+                            Text("Base channel")
+                                .font(.system(size: 11, weight: .regular))
+                                .foregroundColor(TrautoniumTheme.textSecondary)
                             Picker("", selection: prefsBinding.midiBaseChannel) {
                                 ForEach(1...16, id: \.self) { ch in
                                     Text("Channel \(ch)").tag(ch)
                                 }
                             }
-                            .frame(width: 130)
+                            .frame(width: 120)
                         }
                     }
                 }
 
-                HStack(spacing: 24) {
+                HStack(spacing: 20) {
                     // Destination Selector
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
-                            Text("MIDI DESTINATION")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(.secondary)
+                            Text("MIDI destination")
+                                .font(.system(size: 11, weight: .regular))
+                                .foregroundColor(TrautoniumTheme.textSecondary)
                             Spacer()
                             Button(action: {
                                 state.refreshMIDIDestinations()
                             }) {
                                 Image(systemName: "arrow.clockwise")
-                                    .font(.system(size: 10))
-                                    .foregroundColor(.secondary)
+                                    .font(.system(size: 9))
+                                    .foregroundColor(TrautoniumTheme.textMuted)
                             }
                             .buttonStyle(.plain)
                             .help("Refresh MIDI destinations")
@@ -252,15 +251,17 @@ public struct GlobalSettingsView: View {
                                 Text(dest).tag(dest)
                             }
                         }
-                        .frame(minWidth: 260)
+                        .frame(minWidth: 240)
                     }
 
-                    // Toggles for Aftertouch and CC74 Slide
-                    VStack(alignment: .leading, spacing: 8) {
-                        Toggle("Transmit Force Touch as Aftertouch", isOn: prefsBinding.sendAftertouch)
-                            .font(.system(size: 11, weight: .medium))
-                        Toggle("Transmit Y-Axis as CC 74 Slide", isOn: prefsBinding.sendMPECC74)
-                            .font(.system(size: 11, weight: .medium))
+                    // Toggles
+                    VStack(alignment: .leading, spacing: 6) {
+                        Toggle("Force Touch as aftertouch", isOn: prefsBinding.sendAftertouch)
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
+                        Toggle("Y-axis as CC 74 slide", isOn: prefsBinding.sendMPECC74)
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                     }
 
                     Spacer()
@@ -269,120 +270,55 @@ public struct GlobalSettingsView: View {
                     Button(action: {
                         state.sendMIDIPanic()
                     }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "exclamationmark.octagon.fill")
-                                .foregroundColor(.red)
-                            Text("PANIC (ALL NOTES OFF)")
-                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        HStack(spacing: 5) {
+                            Image(systemName: "exclamationmark.octagon")
+                                .font(.system(size: 11))
+                            Text("Panic")
+                                .font(.system(size: 11, weight: .medium))
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.red.opacity(0.18))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(TrautoniumTheme.bgRaised)
+                        .foregroundColor(TrautoniumTheme.recordingRed)
                         .cornerRadius(6)
                         .overlay(
                             RoundedRectangle(cornerRadius: 6)
-                                .stroke(Color.red.opacity(0.4), lineWidth: 1)
+                                .stroke(TrautoniumTheme.recordingRed.opacity(0.3), lineWidth: 1)
                         )
                     }
                     .buttonStyle(.plain)
-                    .help("Sends All Notes Off, All Sound Off, and resets all controllers across all 16 MIDI channels")
+                    .help("Sends All Notes Off across channels 1–16")
                 }
 
-                // Status Banner
-                HStack(spacing: 8) {
+                // Quiet status line
+                HStack(spacing: 6) {
                     Circle()
-                        .fill(prefsBinding.wrappedValue.routingMode == .internalSynth ? Color.secondary : Color.cyan)
-                        .frame(width: 8, height: 8)
-                    Text("Virtual MIDI Source: 'MacTrautonium MPE' active in system. Ready for DAWs (Logic, Ableton, Bitwig, Reaper).")
-                        .font(.system(size: 10, weight: .medium, design: .monospaced))
-                        .foregroundColor(.secondary)
+                        .fill(prefsBinding.wrappedValue.routingMode == .internalSynth ? TrautoniumTheme.textMuted : TrautoniumTheme.accent)
+                        .frame(width: 5, height: 5)
+                    Text("Virtual MIDI port: 'MacTrautonium MPE' active in system")
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundColor(TrautoniumTheme.textMuted)
                     Spacer()
                     if prefsBinding.wrappedValue.midiMode == .mpe {
-                        Text("MPE Lower Zone: Ch 2-16")
-                            .font(.system(size: 9, weight: .bold, design: .monospaced))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.cyan.opacity(0.15))
-                            .foregroundColor(.cyan)
-                            .cornerRadius(4)
+                        Text("Lower zone ch 2–16")
+                            .font(.system(size: 9, design: .monospaced))
+                            .foregroundColor(TrautoniumTheme.textMuted)
                     }
                 }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(Color(white: 0.12))
-                .cornerRadius(6)
+                .padding(.top, 4)
             }
-            .padding(.top, 8)
         }
-    }
-
-    private var scaleNotesBanner: some View {
-        let currentScaleIndex = min(state.patch.scaleIndex, Scales.all.count - 1)
-        let activeScale = Scales.all[currentScaleIndex]
-        let tonicName = Scales.tonicNames[state.patch.tonic % 12]
-        let notesList = activeScale.notesSummary(tonic: state.patch.tonic)
-
-        return HStack(spacing: 12) {
-            HStack(spacing: 6) {
-                Image(systemName: "music.quarternote.3")
-                    .foregroundColor(.yellow)
-                Text(activeScale.name)
-                    .font(.system(size: 12, weight: .bold))
-                Text("in \(tonicName)")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(.yellow)
-            }
-
-            Text("•")
-                .foregroundColor(.secondary)
-
-            HStack(spacing: 4) {
-                Text("Notes:")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(.secondary)
-                Text(notesList)
-                    .font(.system(size: 11, weight: .bold, design: .monospaced))
-                    .foregroundColor(Color(red: 0.98, green: 0.45, blue: 0.55))
-            }
-
-            Spacer()
-
-            Text(activeScale.category.rawValue)
-                .font(.system(size: 10, weight: .semibold))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(Color.white.opacity(0.08))
-                .cornerRadius(4)
-                .foregroundColor(.secondary)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(Color(white: 0.12))
-        .cornerRadius(8)
-    }
-
-    private func categoryPill(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 10, weight: isSelected ? .bold : .medium))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(isSelected ? Color.accentColor : Color(white: 0.18))
-                .foregroundColor(isSelected ? .white : .secondary)
-                .cornerRadius(6)
-        }
-        .buttonStyle(.plain)
     }
 
     private var hardwareCalibrationSection: some View {
-        GroupBox(label: sectionHeader("Trackpad & Force Touch Sensor Calibration", icon: "hand.tap")) {
-            VStack(spacing: 14) {
-                HStack(spacing: 20) {
+        cardContainer(title: "Trackpad & sensor calibration") {
+            VStack(spacing: 12) {
+                HStack(spacing: 16) {
                     // Input Source
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("PRESSURE SENSOR")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Pressure sensor")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Picker("", selection: prefsBinding.pressSource) {
                             ForEach(PressSource.allCases, id: \.self) { src in
                                 Text(src.title).tag(src)
@@ -393,9 +329,9 @@ public struct GlobalSettingsView: View {
 
                     // Pressure Curve
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("RESPONSE CURVE")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Response curve")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Picker("", selection: prefsBinding.pressCurve) {
                             ForEach(PressCurve.allCases, id: \.self) { curve in
                                 Text(curve.title).tag(curve)
@@ -405,104 +341,158 @@ public struct GlobalSettingsView: View {
                     }
 
                     // Haptics Toggle
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("HAPTIC CLICKS")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
-                        Toggle("Force Touch Clicks at Semitones", isOn: prefsBinding.enableHaptics)
-                            .font(.system(size: 11, weight: .medium))
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Haptic clicks")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
+                        Toggle("Click at semitones", isOn: prefsBinding.enableHaptics)
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                     }
                 }
 
-                HStack(spacing: 24) {
+                HStack(spacing: 20) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("PRESSURE FLOOR: \(Int(prefsBinding.wrappedValue.forceFloorGrams)) g")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Pressure floor: \(Int(prefsBinding.wrappedValue.forceFloorGrams)) g")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Slider(value: prefsBinding.forceFloorGrams, in: 0...100)
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("PRESSURE MAX: \(Int(prefsBinding.wrappedValue.forceMaxGrams)) g")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Pressure max: \(Int(prefsBinding.wrappedValue.forceMaxGrams)) g")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Slider(value: prefsBinding.forceMaxGrams, in: 100...600)
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("MIN VOLUME LEVEL: \(Int(prefsBinding.wrappedValue.minLevel * 100))%")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Min level: \(Int(prefsBinding.wrappedValue.minLevel * 100))%")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Slider(value: prefsBinding.minLevel, in: 0.02...0.4)
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("WIRE GATE: \(Int(prefsBinding.wrappedValue.gateThresholdGrams)) g")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Gate threshold: \(Int(prefsBinding.wrappedValue.gateThresholdGrams)) g")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Slider(value: prefsBinding.gateThresholdGrams, in: 0...50)
                     }
                 }
             }
-            .padding(.top, 8)
         }
     }
 
     private var effectsSection: some View {
-        GroupBox(label: sectionHeader("Master Audio Effects, Tape Echo & Stereo Reverb", icon: "dial.medium")) {
-            VStack(spacing: 14) {
-                HStack(spacing: 20) {
+        cardContainer(title: "Master effects") {
+            VStack(spacing: 12) {
+                HStack(spacing: 16) {
                     // Tube Saturation
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("TUBE WARMTH: \(Int(patchBinding.wrappedValue.saturation * 100))%")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Drive: \(Int(patchBinding.wrappedValue.saturation * 100))%")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Slider(value: patchBinding.saturation, in: 0...0.8)
                     }
 
                     // Stereo Reverb
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("CATHEDRAL REVERB: \(Int(patchBinding.wrappedValue.reverbMix * 100))%")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Reverb: \(Int(patchBinding.wrappedValue.reverbMix * 100))%")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Slider(value: patchBinding.reverbMix, in: 0...0.9)
                     }
 
                     // Tape Delay Mix
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("TAPE ECHO MIX: \(Int(patchBinding.wrappedValue.echoMix * 100))%")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Echo mix: \(Int(patchBinding.wrappedValue.echoMix * 100))%")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Slider(value: patchBinding.echoMix, in: 0...0.8)
                     }
 
                     // Tape Delay Time
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("ECHO TIME: \(Int(patchBinding.wrappedValue.echoTimeMs)) ms")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Echo time: \(Int(patchBinding.wrappedValue.echoTimeMs)) ms")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Slider(value: patchBinding.echoTimeMs, in: 80...1000)
                     }
 
                     // Master Volume
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("MASTER: \(Int(prefsBinding.wrappedValue.masterVolume * 100))%")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Master volume: \(Int(prefsBinding.wrappedValue.masterVolume * 100))%")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Slider(value: prefsBinding.masterVolume, in: 0...1)
                     }
                 }
             }
-            .padding(.top, 8)
         }
     }
 
-    private func sectionHeader(_ title: String, icon: String) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: icon)
-                .foregroundColor(.yellow)
-            Text(title)
-                .font(.system(size: 12, weight: .bold, design: .rounded))
+    private var scaleNotesBanner: some View {
+        let currentScaleIndex = min(state.patch.scaleIndex, Scales.all.count - 1)
+        let activeScale = Scales.all[currentScaleIndex]
+        let tonicName = Scales.tonicNames[state.patch.tonic % 12]
+        let notesList = activeScale.notesSummary(tonic: state.patch.tonic)
+
+        return HStack(spacing: 8) {
+            Text("\(activeScale.name) in \(tonicName)")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(TrautoniumTheme.textPrimary)
+
+            Text("·")
+                .foregroundColor(TrautoniumTheme.textMuted)
+
+            Text("Notes: \(notesList)")
+                .font(.system(size: 11, design: .monospaced))
+                .foregroundColor(TrautoniumTheme.textSecondary)
+
+            Spacer()
+
+            Text(activeScale.category.rawValue)
+                .font(.system(size: 10, weight: .regular))
+                .foregroundColor(TrautoniumTheme.textMuted)
         }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(TrautoniumTheme.bgRaised)
+        .cornerRadius(6)
+    }
+
+    private func categoryPill(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 10, weight: isSelected ? .medium : .regular))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(isSelected ? TrautoniumTheme.bgRaised : Color.clear)
+                .foregroundColor(isSelected ? TrautoniumTheme.textPrimary : TrautoniumTheme.textMuted)
+                .cornerRadius(4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(isSelected ? TrautoniumTheme.hairlineStrong : TrautoniumTheme.hairline, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func cardContainer<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(TrautoniumTheme.textPrimary)
+
+            content()
+        }
+        .padding(14)
+        .background(TrautoniumTheme.bgCard)
+        .cornerRadius(8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(TrautoniumTheme.hairline, lineWidth: 1)
+        )
     }
 }

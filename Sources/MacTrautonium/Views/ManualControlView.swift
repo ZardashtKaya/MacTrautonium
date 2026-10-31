@@ -22,7 +22,7 @@ public struct ManualControlView: View {
 
     public var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 20) {
+            VStack(spacing: 16) {
                 // Section 1: Oscillator & Pitch Span
                 oscillatorSection
 
@@ -40,14 +40,14 @@ public struct ManualControlView: View {
     }
 
     private var oscillatorSection: some View {
-        GroupBox(label: sectionHeader("1. Master Relaxation Oscillator & Pitch", icon: "waveform.path")) {
-            VStack(spacing: 14) {
-                HStack(spacing: 20) {
+        cardContainer(title: "Oscillator & pitch") {
+            VStack(spacing: 12) {
+                HStack(spacing: 16) {
                     // Waveform Picker
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("WAVEFORM")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Waveform")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Picker("", selection: paramsBinding.waveform) {
                             ForEach(WaveformType.allCases, id: \.self) { wave in
                                 Text(wave.title).tag(wave)
@@ -57,65 +57,67 @@ public struct ManualControlView: View {
                     }
 
                     // Octave Span
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("RIBBON SPAN: \(paramsBinding.wrappedValue.span) OCTAVES")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Span: \(paramsBinding.wrappedValue.span) octaves")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Stepper("", value: paramsBinding.span, in: 1...4)
                             .labelsHidden()
                     }
 
                     // Low Note (Left Edge)
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: 4) {
                         let noteName = Scales.noteName(for: Float(paramsBinding.wrappedValue.lowNote))
-                        Text("LOW NOTE: \(noteName) (MIDI \(paramsBinding.wrappedValue.lowNote))")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Low note: \(noteName)")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Stepper("", value: paramsBinding.lowNote, in: 24...84)
                             .labelsHidden()
                     }
 
                     // Portamento Glide
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("GLIDE: \(Int(paramsBinding.wrappedValue.glideMs)) ms")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Glide: \(Int(paramsBinding.wrappedValue.glideMs)) ms")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Slider(value: paramsBinding.glideMs, in: 5...100)
                     }
                 }
 
                 HStack {
-                    Toggle("Monophonic Legato (Wire Takeover)", isOn: paramsBinding.isMono)
-                        .font(.system(size: 11, weight: .medium))
+                    Toggle("Monophonic legato", isOn: paramsBinding.isMono)
+                        .font(.system(size: 11, weight: .regular))
+                        .foregroundColor(TrautoniumTheme.textSecondary)
                     Spacer()
-                    Text("Analog Drift: \(Int(paramsBinding.wrappedValue.analogDrift * 100))%")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.secondary)
+                    Text("Drift: \(Int(paramsBinding.wrappedValue.analogDrift * 100))%")
+                        .font(.system(size: 11, weight: .regular))
+                        .foregroundColor(TrautoniumTheme.textMuted)
                     Slider(value: paramsBinding.analogDrift, in: 0...1)
-                        .frame(width: 120)
+                        .frame(width: 100)
                 }
             }
-            .padding(.top, 8)
         }
     }
 
     private var subharmonicMixturSection: some View {
-        GroupBox(label: sectionHeader("2. Subharmonic Mixture (Mixtur Dividers f/N)", icon: "slider.vertical.3")) {
+        cardContainer(title: "Subharmonic mixture") {
             VStack(spacing: 12) {
                 HStack(spacing: 16) {
                     // Fundamental Level
                     VStack(spacing: 6) {
-                        Text("MAIN f₀")
-                            .font(.system(size: 11, weight: .bold, design: .monospaced))
-                            .foregroundColor(.yellow)
+                        Text("Fundamental f₀")
+                            .font(.system(size: 11, weight: .medium, design: .monospaced))
+                            .foregroundColor(TrautoniumTheme.accent)
                         Slider(value: paramsBinding.mainLevel, in: 0...1)
                         Text("\(Int(paramsBinding.wrappedValue.mainLevel * 100))%")
                             .font(.system(size: 10, design: .monospaced))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(TrautoniumTheme.textMuted)
                     }
                     .frame(maxWidth: .infinity)
 
-                    Divider().frame(height: 60)
+                    Divider()
+                        .frame(height: 56)
+                        .overlay(TrautoniumTheme.hairline)
 
                     // 4 Subharmonic Columns
                     ForEach(0..<4, id: \.self) { idx in
@@ -123,7 +125,6 @@ public struct ManualControlView: View {
                     }
                 }
             }
-            .padding(.top, 8)
         }
     }
 
@@ -133,11 +134,12 @@ public struct ManualControlView: View {
 
         return VStack(spacing: 6) {
             HStack(spacing: 4) {
-                Text("SUB \(index + 1)")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                Text("Sub \(index + 1)")
+                    .font(.system(size: 10, weight: .regular))
+                    .foregroundColor(TrautoniumTheme.textMuted)
                 Text("f/\(div)")
-                    .font(.system(size: 12, weight: .black, design: .monospaced))
-                    .foregroundColor(manualIndex == 0 ? Color(red: 0.98, green: 0.45, blue: 0.55) : Color(red: 0.25, green: 0.82, blue: 0.88))
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .foregroundColor(TrautoniumTheme.textPrimary)
             }
 
             Stepper("", value: Binding(
@@ -159,22 +161,22 @@ public struct ManualControlView: View {
 
             Text("\(Int(lvl * 100))%")
                 .font(.system(size: 10, design: .monospaced))
-                .foregroundColor(.secondary)
+                .foregroundColor(TrautoniumTheme.textMuted)
         }
         .frame(maxWidth: .infinity)
     }
 
     private var formantFilterSection: some View {
-        GroupBox(label: sectionHeader("3. Acoustic Vowel Formant Filters & Tone Cutoff", icon: "waveform")) {
-            VStack(spacing: 14) {
+        cardContainer(title: "Formant filters & tone") {
+            VStack(spacing: 12) {
                 HStack(spacing: 24) {
                     // Vowel Selector
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("VOWEL FORMANT")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
-                        HStack(spacing: 6) {
-                            vowelButton(title: "OFF", value: -1)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Vowel formant")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
+                        HStack(spacing: 4) {
+                            vowelButton(title: "Off", value: -1)
                             vowelButton(title: "A", value: 0)
                             vowelButton(title: "E", value: 1)
                             vowelButton(title: "I", value: 2)
@@ -184,117 +186,132 @@ public struct ManualControlView: View {
                     }
 
                     // Register Selector
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("REGISTER")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Register")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Picker("", selection: paramsBinding.register) {
                             Text("Bass").tag(0)
                             Text("Tenor").tag(1)
                             Text("Soprano").tag(2)
                         }
                         .pickerStyle(.segmented)
-                        .frame(width: 200)
+                        .frame(width: 180)
                     }
                 }
 
-                HStack(spacing: 20) {
+                HStack(spacing: 16) {
                     // Cutoff
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("CUTOFF: \(Int(paramsBinding.wrappedValue.cutoff)) Hz")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Cutoff: \(Int(paramsBinding.wrappedValue.cutoff)) Hz")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Slider(value: paramsBinding.cutoff, in: 100...8000)
                     }
 
                     // Resonance
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("RESONANCE: \(Int(paramsBinding.wrappedValue.resonance * 100))%")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Resonance: \(Int(paramsBinding.wrappedValue.resonance * 100))%")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Slider(value: paramsBinding.resonance, in: 0...0.92)
                     }
 
                     // Pressure to Brightness
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("PRESSURE BRIGHTNESS: +\(Int(paramsBinding.wrappedValue.pressureBrightness * 300))%")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
+                        Text("Pressure brightness: +\(Int(paramsBinding.wrappedValue.pressureBrightness * 300))%")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
                         Slider(value: paramsBinding.pressureBrightness, in: 0...1)
                     }
                 }
             }
-            .padding(.top, 8)
         }
     }
 
     private func vowelButton(title: String, value: Int) -> some View {
         let isSelected = paramsBinding.wrappedValue.vowel == value
-        let accentColor = manualIndex == 0 ? Color(red: 0.98, green: 0.45, blue: 0.55) : Color(red: 0.25, green: 0.82, blue: 0.88)
 
         return Button(action: {
             paramsBinding.wrappedValue.vowel = value
             state.updatePatch()
         }) {
             Text(title)
-                .font(.system(size: 11, weight: .bold, design: .rounded))
-                .foregroundColor(isSelected ? .black : .white)
-                .frame(width: 38, height: 26)
-                .background(isSelected ? accentColor : Color(white: 0.2))
-                .cornerRadius(6)
+                .font(.system(size: 11, weight: isSelected ? .medium : .regular))
+                .foregroundColor(isSelected ? TrautoniumTheme.textPrimary : TrautoniumTheme.textSecondary)
+                .frame(width: 34, height: 24)
+                .background(isSelected ? TrautoniumTheme.bgRaised : TrautoniumTheme.bgDeep)
+                .cornerRadius(4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(isSelected ? TrautoniumTheme.hairlineStrong : TrautoniumTheme.hairline, lineWidth: 1)
+                )
         }
         .buttonStyle(.plain)
     }
 
     private var envelopeSection: some View {
-        GroupBox(label: sectionHeader("4. Dynamic Envelope & Volume", icon: "timer")) {
-            HStack(spacing: 20) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("ATTACK: \(Int(paramsBinding.wrappedValue.attackMs)) ms")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.secondary)
-                    Slider(value: paramsBinding.attackMs, in: 1...500)
-                }
+        cardContainer(title: "Envelope & volume") {
+            VStack(spacing: 12) {
+                HStack(spacing: 16) {
+                    // Attack
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Attack: \(Int(paramsBinding.wrappedValue.attackMs)) ms")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
+                        Slider(value: paramsBinding.attackMs, in: 1...500)
+                    }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("DECAY: \(Int(paramsBinding.wrappedValue.decayMs)) ms")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.secondary)
-                    Slider(value: paramsBinding.decayMs, in: 10...2000)
-                }
+                    // Decay
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Decay: \(Int(paramsBinding.wrappedValue.decayMs)) ms")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
+                        Slider(value: paramsBinding.decayMs, in: 20...1500)
+                    }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    let sus = paramsBinding.wrappedValue.sustain
-                    Text("SUSTAIN: \(Int(sus * 100))%\(sus == 0 ? " (Pluck)" : "")")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.secondary)
-                    Slider(value: paramsBinding.sustain, in: 0...1)
-                }
+                    // Sustain
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Sustain: \(Int(paramsBinding.wrappedValue.sustain * 100))%")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
+                        Slider(value: paramsBinding.sustain, in: 0...1)
+                    }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("RELEASE: \(Int(paramsBinding.wrappedValue.releaseMs)) ms")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.secondary)
-                    Slider(value: paramsBinding.releaseMs, in: 10...3000)
-                }
+                    // Release
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Release: \(Int(paramsBinding.wrappedValue.releaseMs)) ms")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
+                        Slider(value: paramsBinding.releaseMs, in: 10...2000)
+                    }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("VOLUME: \(Int(paramsBinding.wrappedValue.volume * 100))%")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.secondary)
-                    Slider(value: paramsBinding.volume, in: 0...1)
+                    // Volume
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Volume: \(Int(paramsBinding.wrappedValue.volume * 100))%")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(TrautoniumTheme.textSecondary)
+                        Slider(value: paramsBinding.volume, in: 0...1)
+                    }
                 }
             }
-            .padding(.top, 8)
         }
     }
 
-    private func sectionHeader(_ title: String, icon: String) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: icon)
-                .foregroundColor(manualIndex == 0 ? Color(red: 0.98, green: 0.45, blue: 0.55) : Color(red: 0.25, green: 0.82, blue: 0.88))
+    private func cardContainer<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
             Text(title)
-                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(TrautoniumTheme.textPrimary)
+
+            content()
         }
+        .padding(14)
+        .background(TrautoniumTheme.bgCard)
+        .cornerRadius(8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(TrautoniumTheme.hairline, lineWidth: 1)
+        )
     }
 }

@@ -12,20 +12,14 @@ public struct TrackpadRibbonView: View {
         GeometryReader { geo in
             ZStack {
                 // Background Trackpad Surface
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(
-                        LinearGradient(
-                            colors: [Color(white: 0.12), Color(white: 0.08)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(TrautoniumTheme.bgCard)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color(white: 0.22), lineWidth: 1.5)
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(TrautoniumTheme.hairline, lineWidth: 1)
                     )
 
-                // Note Grid and Markers
+                // Note Grid and Resistance Ribbon Markers
                 noteGridView(width: geo.size.width, height: geo.size.height)
 
                 // Manual Split Line
@@ -35,42 +29,40 @@ public struct TrackpadRibbonView: View {
                         path.addLine(to: CGPoint(x: geo.size.width - 16, y: geo.size.height * 0.5))
                     }
                     .stroke(
-                        Color(white: 0.28),
-                        style: StrokeStyle(lineWidth: 1.5, dash: [6, 4])
+                        TrautoniumTheme.hairlineStrong,
+                        style: StrokeStyle(lineWidth: 1, dash: [4, 4])
                     )
                 }
 
-                // Active Touch Indicators (Fingers)
+                // Active Touch Contact Indicators (Fingers)
                 ForEach(state.activeTouches) { touch in
                     touchOrbView(touch: touch, bounds: geo.size)
                 }
 
-                // Manual Section Watermarks
+                // Subtle Manual Identifiers
                 VStack {
                     HStack {
                         manualLabel(
-                            title: "MANUAL I (Lead)",
-                            color: Color(red: 0.98, green: 0.45, blue: 0.55),
+                            title: "Manual 1",
                             span: state.patch.manuals[0].span
                         )
                         Spacer()
                     }
-                    .padding(.top, 10)
-                    .padding(.leading, 18)
+                    .padding(.top, 8)
+                    .padding(.leading, 14)
 
                     Spacer()
 
                     if state.patch.isSplit {
                         HStack {
                             manualLabel(
-                                title: "MANUAL II (Mixtur)",
-                                color: Color(red: 0.25, green: 0.82, blue: 0.88),
+                                title: "Manual 2",
                                 span: state.patch.manuals[1].span
                             )
                             Spacer()
                         }
-                        .padding(.bottom, 10)
-                        .padding(.leading, 18)
+                        .padding(.bottom, 8)
+                        .padding(.leading, 14)
                     }
                 }
             }
@@ -87,17 +79,17 @@ public struct TrackpadRibbonView: View {
                     }
             )
         }
-        .frame(height: 260)
+        .frame(height: 240)
     }
 
-    private func manualLabel(title: String, color: Color, span: Int) -> some View {
-        HStack(spacing: 8) {
+    private func manualLabel(title: String, span: Int) -> some View {
+        HStack(spacing: 6) {
             Circle()
-                .fill(color)
-                .frame(width: 8, height: 8)
-            Text("\(title) • \(span) Octaves")
-                .font(.system(size: 11, weight: .bold, design: .monospaced))
-                .foregroundColor(color.opacity(0.85))
+                .fill(TrautoniumTheme.textMuted)
+                .frame(width: 4, height: 4)
+            Text("\(title)  ·  \(span) octaves")
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .foregroundColor(TrautoniumTheme.textMuted)
         }
     }
 
@@ -107,9 +99,10 @@ public struct TrackpadRibbonView: View {
             let usableW = size.width * (1.0 - 2.0 * edge)
             let startX = size.width * edge
 
-            // Render Manual I markers (top half or full)
+            // Manual 1 markers
             let m0 = state.patch.manuals[0]
             let totalSemis0 = m0.span * 12
+            let yBottom0 = state.patch.isSplit ? size.height * 0.5 : size.height
 
             for s in 0...totalSemis0 {
                 let u = CGFloat(s) / CGFloat(totalSemis0)
@@ -118,27 +111,27 @@ public struct TrackpadRibbonView: View {
                 let isInScale = Scales.contains(note: midi, scaleIndex: state.patch.scaleIndex, tonic: state.patch.tonic)
                 let isTonic = (midi % 12) == (state.patch.tonic % 12)
 
-                let yBottom = state.patch.isSplit ? size.height * 0.5 : size.height
-
                 var path = Path()
                 path.move(to: CGPoint(x: x, y: 0))
-                path.addLine(to: CGPoint(x: x, y: yBottom))
+                path.addLine(to: CGPoint(x: x, y: yBottom0))
 
-                let strokeColor = isTonic ? Color.yellow.opacity(0.4) : (isInScale ? Color.white.opacity(0.16) : Color.white.opacity(0.05))
-                let lineWidth: CGFloat = isTonic ? 1.5 : (isInScale ? 1.0 : 0.5)
+                let strokeColor = isTonic
+                    ? TrautoniumTheme.accent.opacity(0.35)
+                    : (isInScale ? Color.white.opacity(0.10) : Color.white.opacity(0.03))
+                let lineWidth: CGFloat = isTonic ? 1.0 : 0.5
                 context.stroke(path, with: .color(strokeColor), lineWidth: lineWidth)
 
-                // Label at top
+                // Labels at top
                 if isTonic || (isInScale && s % 2 == 0) {
                     let noteStr = Scales.noteName(for: Float(midi))
                     let text = Text(noteStr)
-                        .font(.system(size: 9, weight: isTonic ? .bold : .medium, design: .monospaced))
-                        .foregroundColor(isTonic ? .yellow : .white.opacity(0.6))
-                    context.draw(text, at: CGPoint(x: x, y: 14))
+                        .font(.system(size: 9, weight: isTonic ? .medium : .regular, design: .monospaced))
+                        .foregroundColor(isTonic ? TrautoniumTheme.accent : TrautoniumTheme.textMuted)
+                    context.draw(text, at: CGPoint(x: x, y: 12))
                 }
             }
 
-            // Render Manual II markers (bottom half)
+            // Manual 2 markers
             if state.patch.isSplit {
                 let m1 = state.patch.manuals[1]
                 let totalSemis1 = m1.span * 12
@@ -154,16 +147,18 @@ public struct TrackpadRibbonView: View {
                     path.move(to: CGPoint(x: x, y: size.height * 0.5))
                     path.addLine(to: CGPoint(x: x, y: size.height))
 
-                    let strokeColor = isTonic ? Color.yellow.opacity(0.4) : (isInScale ? Color.white.opacity(0.16) : Color.white.opacity(0.05))
-                    let lineWidth: CGFloat = isTonic ? 1.5 : (isInScale ? 1.0 : 0.5)
+                    let strokeColor = isTonic
+                        ? TrautoniumTheme.accent.opacity(0.35)
+                        : (isInScale ? Color.white.opacity(0.10) : Color.white.opacity(0.03))
+                    let lineWidth: CGFloat = isTonic ? 1.0 : 0.5
                     context.stroke(path, with: .color(strokeColor), lineWidth: lineWidth)
 
                     if isTonic || (isInScale && s % 2 == 0) {
                         let noteStr = Scales.noteName(for: Float(midi))
                         let text = Text(noteStr)
-                            .font(.system(size: 9, weight: isTonic ? .bold : .medium, design: .monospaced))
-                            .foregroundColor(isTonic ? .yellow : .white.opacity(0.6))
-                        context.draw(text, at: CGPoint(x: x, y: size.height - 14))
+                            .font(.system(size: 9, weight: isTonic ? .medium : .regular, design: .monospaced))
+                            .foregroundColor(isTonic ? TrautoniumTheme.accent : TrautoniumTheme.textMuted)
+                        context.draw(text, at: CGPoint(x: x, y: size.height - 12))
                     }
                 }
             }
@@ -173,59 +168,52 @@ public struct TrackpadRibbonView: View {
     private func touchOrbView(touch: SynthTouchSnapshot, bounds: CGSize) -> some View {
         let x = CGFloat(touch.x) * bounds.width
         let y = CGFloat(touch.y) * bounds.height
-        let color = touch.manual == 0 ? Color(red: 0.98, green: 0.45, blue: 0.55) : Color(red: 0.25, green: 0.82, blue: 0.88)
-        let haloRadius = 24.0 + CGFloat(touch.normalizedPressure) * 36.0
+        let haloRadius = 18.0 + CGFloat(touch.normalizedPressure) * 24.0
 
         let noteName = Scales.noteName(for: touch.soundingMidi)
         let cents = Scales.centsOffset(fromExactMidi: touch.soundingMidi)
         let centsStr = cents >= 0 ? "+\(cents)¢" : "\(cents)¢"
 
         return ZStack {
-            // Pressure Halo (Force Touch expression)
+            // Mechanical Contact Ring (Expands with force)
             Circle()
-                .stroke(color.opacity(0.45), lineWidth: 2)
+                .stroke(TrautoniumTheme.accent.opacity(0.35), lineWidth: 1)
                 .frame(width: haloRadius * 2, height: haloRadius * 2)
 
             Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [color.opacity(0.6), color.opacity(0.0)],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: haloRadius
-                    )
-                )
+                .fill(TrautoniumTheme.accent.opacity(0.06))
                 .frame(width: haloRadius * 2, height: haloRadius * 2)
 
-            // Center Touch Core
+            // Contact Center Bead
             Circle()
-                .fill(Color.white)
-                .frame(width: 12, height: 12)
-                .shadow(color: color, radius: 8)
+                .fill(TrautoniumTheme.textPrimary)
+                .frame(width: 8, height: 8)
 
-            // Floating Note & Pressure Badge
-            VStack(spacing: 2) {
-                HStack(spacing: 4) {
-                    Text(noteName)
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                    Text(centsStr)
-                        .font(.system(size: 10, weight: .medium, design: .monospaced))
-                        .foregroundColor(abs(cents) <= 5 ? .green : .white.opacity(0.8))
-                }
-
+            // Readout Badge
+            HStack(spacing: 5) {
+                Text(noteName)
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .foregroundColor(TrautoniumTheme.textPrimary)
+                Text(centsStr)
+                    .font(.system(size: 9, weight: .regular, design: .monospaced))
+                    .foregroundColor(abs(cents) <= 5 ? TrautoniumTheme.accent : TrautoniumTheme.textMuted)
                 if touch.pressureGrams > 0 {
+                    Text("·")
+                        .foregroundColor(TrautoniumTheme.textMuted)
                     Text("\(Int(touch.pressureGrams))g")
-                        .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                        .foregroundColor(color.opacity(0.9))
+                        .font(.system(size: 9, weight: .regular, design: .monospaced))
+                        .foregroundColor(TrautoniumTheme.textSecondary)
                 }
             }
             .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(Color.black.opacity(0.85))
-            .cornerRadius(8)
-            .overlay(RoundedRectangle(cornerRadius: 8).stroke(color, lineWidth: 1))
-            .offset(y: -42)
+            .padding(.vertical, 3)
+            .background(TrautoniumTheme.bgRaised)
+            .cornerRadius(6)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(TrautoniumTheme.hairlineStrong, lineWidth: 1)
+            )
+            .offset(y: -32)
         }
         .position(x: x, y: y)
     }

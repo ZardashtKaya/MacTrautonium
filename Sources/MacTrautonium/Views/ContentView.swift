@@ -8,70 +8,72 @@ public struct ContentView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Header Bar (Presets, Recording, Title)
+            // Header Bar
             HeaderBarView(state: state)
 
-            // Play Mode Notification Banner
+            // Performance Mode Banner (when decoupled)
             if state.isPlayMode {
                 HStack(spacing: 8) {
                     Circle()
-                        .fill(Color.green)
-                        .frame(width: 8, height: 8)
-                    Text("PLAY MODE ACTIVE — Mouse cursor decoupled • Free multi-finger trackpad performance")
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
-                        .foregroundColor(.green)
+                        .fill(TrautoniumTheme.playGreen)
+                        .frame(width: 6, height: 6)
+                    Text("Performance mode active · Trackpad dedicated to instrument")
+                        .font(.system(size: 11, weight: .regular))
+                        .foregroundColor(TrautoniumTheme.textSecondary)
                     Spacer()
-                    Text("Press SPACE or ESC to Exit")
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.85))
-                        .padding(.horizontal, 8)
+                    Text("Space or Esc to exit")
+                        .font(.system(size: 10, weight: .regular, design: .monospaced))
+                        .foregroundColor(TrautoniumTheme.textMuted)
+                        .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(Color.black.opacity(0.4))
+                        .background(TrautoniumTheme.bgDeep)
                         .cornerRadius(4)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 6)
-                .background(Color.green.opacity(0.12))
-                .overlay(Rectangle().stroke(Color.green.opacity(0.3), lineWidth: 1))
+                .background(TrautoniumTheme.bgRaised)
+                .overlay(
+                    Rectangle()
+                        .frame(height: 1)
+                        .foregroundColor(TrautoniumTheme.hairline),
+                    alignment: .bottom
+                )
             }
 
-            // Upper Display: Oscilloscope & Ribbon
-            VStack(spacing: 8) {
-                // Real-time Waveform Oscilloscope
+            // Instrument Workspace: Oscilloscope & Trackpad Ribbon
+            VStack(spacing: 12) {
+                // Waveform CRT Monitor
                 OscilloscopeView(waveform: state.scopeWaveform)
-                    .frame(height: 70)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 10)
+                    .frame(height: 64)
 
-                // Interactive Dual-Manual Trackpad Ribbon
+                // Precision Ribbon
                 TrackpadRibbonView(state: state)
-                    .padding(.horizontal, 16)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(state.isPlayMode ? Color.green.opacity(0.5) : Color.clear, lineWidth: 2)
-                            .padding(.horizontal, 16)
-                    )
             }
-            .background(Color(white: 0.08))
+            .padding(16)
+            .background(TrautoniumTheme.bgDeep)
 
-            // Tab Selector
-            HStack(spacing: 0) {
-                tabButton(title: "Manual I (Lead)", index: 0, color: Color(red: 0.98, green: 0.45, blue: 0.55))
+            // Tab Navigation
+            HStack(spacing: 4) {
+                tabButton(title: "Manual 1", index: 0)
                 if state.patch.isSplit {
-                    tabButton(title: "Manual II (Mixtur)", index: 1, color: Color(red: 0.25, green: 0.82, blue: 0.88))
+                    tabButton(title: "Manual 2", index: 1)
                 }
-                tabButton(title: "Scales, Calibration & Effects", index: 2, color: .yellow)
+                tabButton(title: "Scales & routing", index: 2)
                 Spacer()
             }
             .padding(.horizontal, 16)
-            .padding(.top, 8)
-            .background(Color(white: 0.12))
+            .padding(.top, 4)
+            .background(TrautoniumTheme.bgDeep)
+            .overlay(
+                Rectangle()
+                    .frame(height: 1)
+                    .foregroundColor(TrautoniumTheme.hairline),
+                alignment: .bottom
+            )
 
-            Divider()
-
-            // Control Sections
+            // Parameter Console
             ZStack {
-                Color(white: 0.10).edgesIgnoringSafeArea(.all)
+                TrautoniumTheme.bgPage.edgesIgnoringSafeArea(.all)
 
                 switch state.selectedTab {
                 case 0:
@@ -82,30 +84,37 @@ public struct ContentView: View {
                     GlobalSettingsView(state: state)
                 }
             }
-            .opacity(state.isPlayMode ? 0.45 : 1.0)
+            .opacity(state.isPlayMode ? 0.35 : 1.0)
             .allowsHitTesting(!state.isPlayMode)
 
-            // Status Bar & Help Tip
+            // Status Bar
             HStack {
-                Image(systemName: "hand.tap")
-                    .foregroundColor(state.isPlayMode ? .green : .secondary)
+                Image(systemName: "hand.point.up")
+                    .font(.system(size: 10))
+                    .foregroundColor(TrautoniumTheme.textMuted)
                 Text(state.isPlayMode
-                     ? "Playing Mode Active: Cursor is hidden & decoupled. Press SPACE or ESC to tweak knobs."
-                     : "Press SPACE to enter Play Mode (decouples cursor for trackpad playing). Multi-finger chords supported.")
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                    .foregroundColor(state.isPlayMode ? .green : .secondary)
+                     ? "Performance mode active. Press Space to restore cursor."
+                     : "Press Space to enter performance mode. Multi-finger chords supported.")
+                    .font(.system(size: 10, weight: .regular))
+                    .foregroundColor(TrautoniumTheme.textMuted)
                 Spacer()
-                Text("Sample Rate: 48,000 Hz • PolyBLEP Anti-Aliased")
+                Text("48 kHz · Polyphonic · MPE ready")
                     .font(.system(size: 10, design: .monospaced))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(TrautoniumTheme.textMuted)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 6)
-            .background(Color(white: 0.07))
+            .background(TrautoniumTheme.bgDeep)
+            .overlay(
+                Rectangle()
+                    .frame(height: 1)
+                    .foregroundColor(TrautoniumTheme.hairline),
+                alignment: .top
+            )
         }
-        .frame(minWidth: 880, minHeight: 750)
+        .frame(minWidth: 880, minHeight: 740)
         .preferredColorScheme(.dark)
-        .alert("Recording Saved", isPresented: $state.showRecordedAlert) {
+        .alert("Recording saved", isPresented: $state.showRecordedAlert) {
             Button("OK") {}
             if let url = state.lastRecordedURL {
                 Button("Show in Finder") {
@@ -114,95 +123,31 @@ public struct ContentView: View {
             }
         } message: {
             if let url = state.lastRecordedURL {
-                Text("Your performance was saved to:\n\(url.lastPathComponent)")
+                Text("Saved to:\n\(url.lastPathComponent)")
             } else {
                 Text("Performance saved successfully.")
             }
         }
     }
 
-    private func tabButton(title: String, index: Int, color: Color) -> some View {
+    private func tabButton(title: String, index: Int) -> some View {
         let isSelected = state.selectedTab == index
         return Button(action: {
             state.selectedTab = index
         }) {
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(color)
-                    .frame(width: 8, height: 8)
+            VStack(spacing: 6) {
                 Text(title)
-                    .font(.system(size: 12, weight: isSelected ? .bold : .medium))
-                    .foregroundColor(isSelected ? .white : .secondary)
+                    .font(.system(size: 11, weight: isSelected ? .medium : .regular))
+                    .foregroundColor(isSelected ? TrautoniumTheme.textPrimary : TrautoniumTheme.textSecondary)
+                    .padding(.horizontal, 10)
+                    .padding(.top, 6)
+
+                // Subtle bottom indicator line for active tab
+                Rectangle()
+                    .fill(isSelected ? TrautoniumTheme.accent : Color.clear)
+                    .frame(height: 2)
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(isSelected ? Color(white: 0.18) : Color.clear)
-            .cornerRadius(8, corners: [.topLeft, .topRight])
         }
         .buttonStyle(.plain)
-    }
-}
-
-// Corner radius extension
-extension View {
-    func cornerRadius(_ radius: CGFloat, corners: RectCorner) -> some View {
-        clipShape(RoundedCornerShape(radius: radius, corners: corners))
-    }
-}
-
-public struct RectCorner: OptionSet, Sendable {
-    public let rawValue: Int
-    public init(rawValue: Int) { self.rawValue = rawValue }
-
-    public static let topLeft = RectCorner(rawValue: 1 << 0)
-    public static let topRight = RectCorner(rawValue: 1 << 1)
-    public static let bottomLeft = RectCorner(rawValue: 1 << 2)
-    public static let bottomRight = RectCorner(rawValue: 1 << 3)
-    public static let allCorners: RectCorner = [.topLeft, .topRight, .bottomLeft, .bottomRight]
-}
-
-struct RoundedCornerShape: Shape {
-    var radius: CGFloat = .infinity
-    var corners: RectCorner = .allCorners
-
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let p1 = CGPoint(x: rect.minX, y: rect.minY)
-        let p2 = CGPoint(x: rect.maxX, y: rect.minY)
-        let p3 = CGPoint(x: rect.maxX, y: rect.maxY)
-        let p4 = CGPoint(x: rect.minX, y: rect.maxY)
-
-        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
-
-        if corners.contains(.topRight) {
-            path.addLine(to: CGPoint(x: p2.x - radius, y: p2.y))
-            path.addArc(center: CGPoint(x: p2.x - radius, y: p2.y + radius), radius: radius, startAngle: Angle(degrees: -90), endAngle: Angle(degrees: 0), clockwise: false)
-        } else {
-            path.addLine(to: p2)
-        }
-
-        if corners.contains(.bottomRight) {
-            path.addLine(to: CGPoint(x: p3.x, y: p3.y - radius))
-            path.addArc(center: CGPoint(x: p3.x - radius, y: p3.y - radius), radius: radius, startAngle: Angle(degrees: 0), endAngle: Angle(degrees: 90), clockwise: false)
-        } else {
-            path.addLine(to: p3)
-        }
-
-        if corners.contains(.bottomLeft) {
-            path.addLine(to: CGPoint(x: p4.x + radius, y: p4.y))
-            path.addArc(center: CGPoint(x: p4.x + radius, y: p4.y - radius), radius: radius, startAngle: Angle(degrees: 90), endAngle: Angle(degrees: 180), clockwise: false)
-        } else {
-            path.addLine(to: p4)
-        }
-
-        if corners.contains(.topLeft) {
-            path.addLine(to: CGPoint(x: p1.x, y: p1.y + radius))
-            path.addArc(center: CGPoint(x: p1.x + radius, y: p1.y + radius), radius: radius, startAngle: Angle(degrees: 180), endAngle: Angle(degrees: 270), clockwise: false)
-        } else {
-            path.addLine(to: p1)
-        }
-
-        path.closeSubpath()
-        return path
     }
 }
