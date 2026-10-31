@@ -11,6 +11,13 @@ A polyphonic electronic musical instrument for macOS inspired by Oskar Sala's le
 - **Dual Manuals (Sala Configuration)**: Upper half of trackpad = Manual I (Lead/Melody), Lower half = Manual II (Mixtur/Bass), each with distinct waveforms, subharmonic dividers, and formant filters (or full-width single manual mode).
 - **Subharmonic Mixture Engine**: PolyBLEP anti-aliased Sawtooth and Neon relaxation tube oscillators ($1 - e^{-kt}$) with 4 subharmonic frequency divider slots ($f_0 / N$, $N \in [1..24]$).
 - **Formant Acoustic Resonance Banks**: Parallel 4-stage Topology-Preserving Transform (TPT) State Variable Filters replicating acoustic vowel resonances (**A, E, I, O, U**) across Bass, Tenor, and Soprano registers.
+- **MIDI Out & MPE (MIDI Polyphonic Expression)**: Broadcasts high-resolution expressive MIDI to external DAWs (Logic Pro, Ableton Live, Bitwig, Cubase, Reaper) and software synths via a built-in CoreMIDI virtual port (`MacTrautonium MPE`):
+  - **MPE Multi-Channel**: Allocates touches across member channels 2–16 with per-finger independent 14-bit pitch bend.
+  - **Continuous Pressure (Aftertouch)**: Force Touch pressure transmitted as Channel Aftertouch or Poly Key Pressure.
+  - **Slide / Timbre (CC 74)**: Vertical $Y$-axis finger movement transmitted as CC 74 (MPE Slide).
+  - **Pitch Bend Range**: Configurable ($\pm 12$, $\pm 24$, $\pm 48$, $\pm 96$ semitones) with automatic RPN broadcast.
+  - **Destination Routing**: Output to virtual source or external hardware USB/Bluetooth MIDI endpoints.
+- **Global Sound Routing Toggle**: Instant header-bar switcher between `[SYNTH]` (internal audio engine only), `[MIDI OUT]` (mutes internal synth to prevent double-triggering in DAWs while streaming MPE), and `[BOTH]` (layering internal oscillators with external plugins).
 - **Dynamic Pressure Expression**: Touch pressure modulates amplitude and dynamically opens filter cutoff brightness (up to 3 octaves), simulating the resistance wire pressed onto the metal rail.
 - **42 Musical Scales & Category Browser**: 42 scales across 6 categories (Diatonic & Modes, Jazz & Melodic Minor, Harmonic Modes, Pentatonic & Blues, Symmetric & Modern, and World/Maqams/Ragas) with live note summary banners.
 - **Magnetic Snap Intonation**: Fretless continuous glide and natural finger vibrato while moving, with intelligent soft magnetic attraction toward scale notes when a finger rests or slows down.

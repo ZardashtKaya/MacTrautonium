@@ -35,6 +35,9 @@ public struct GlobalSettingsView: View {
                 // Musical Scale & Magnetic Attraction
                 scaleAndSnapSection
 
+                // Audio Routing & MIDI / MPE Output
+                midiAndMPESection
+
                 // Trackpad & Force Touch Hardware Settings
                 hardwareCalibrationSection
 
@@ -163,6 +166,154 @@ public struct GlobalSettingsView: View {
             return Scales.all.indices.filter { Scales.all[$0].category == cat }
         }
         return Array(Scales.all.indices)
+    }
+
+    private var midiAndMPESection: some View {
+        GroupBox(label: sectionHeader("Audio Routing & MIDI / MPE Output", icon: "pianokeys")) {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 20) {
+                    // Global Output Routing Mode
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("GLOBAL ROUTING")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.secondary)
+                        Picker("", selection: prefsBinding.routingMode) {
+                            ForEach(OutputRoutingMode.allCases, id: \.self) { mode in
+                                Text(mode.title).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(minWidth: 260)
+                    }
+
+                    // MIDI Protocol (MPE vs Standard)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("MIDI PROTOCOL")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.secondary)
+                        Picker("", selection: prefsBinding.midiMode) {
+                            ForEach(MIDIMode.allCases, id: \.self) { mode in
+                                Text(mode.title).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
+
+                    // MPE Pitch Bend Range or Base Channel
+                    if prefsBinding.wrappedValue.midiMode == .mpe {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("MPE BEND RANGE")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.secondary)
+                            Picker("", selection: prefsBinding.mpeBendRange) {
+                                Text("±12 Semis").tag(12)
+                                Text("±24 Semis").tag(24)
+                                Text("±48 Semis (MPE Std)").tag(48)
+                                Text("±96 Semis").tag(96)
+                            }
+                            .frame(width: 170)
+                        }
+                    } else {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("BASE MIDI CHANNEL")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.secondary)
+                            Picker("", selection: prefsBinding.midiBaseChannel) {
+                                ForEach(1...16, id: \.self) { ch in
+                                    Text("Channel \(ch)").tag(ch)
+                                }
+                            }
+                            .frame(width: 130)
+                        }
+                    }
+                }
+
+                HStack(spacing: 24) {
+                    // Destination Selector
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text("MIDI DESTINATION")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Button(action: {
+                                state.refreshMIDIDestinations()
+                            }) {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .help("Refresh MIDI destinations")
+                        }
+
+                        Picker("", selection: prefsBinding.selectedMIDIDestinationName) {
+                            ForEach(state.availableMIDIDestinations, id: \.self) { dest in
+                                Text(dest).tag(dest)
+                            }
+                        }
+                        .frame(minWidth: 260)
+                    }
+
+                    // Toggles for Aftertouch and CC74 Slide
+                    VStack(alignment: .leading, spacing: 8) {
+                        Toggle("Transmit Force Touch as Aftertouch", isOn: prefsBinding.sendAftertouch)
+                            .font(.system(size: 11, weight: .medium))
+                        Toggle("Transmit Y-Axis as CC 74 Slide", isOn: prefsBinding.sendMPECC74)
+                            .font(.system(size: 11, weight: .medium))
+                    }
+
+                    Spacer()
+
+                    // Panic Button
+                    Button(action: {
+                        state.sendMIDIPanic()
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "exclamationmark.octagon.fill")
+                                .foregroundColor(.red)
+                            Text("PANIC (ALL NOTES OFF)")
+                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.red.opacity(0.18))
+                        .cornerRadius(6)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.red.opacity(0.4), lineWidth: 1)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .help("Sends All Notes Off, All Sound Off, and resets all controllers across all 16 MIDI channels")
+                }
+
+                // Status Banner
+                HStack(spacing: 8) {
+                    Circle()
+                        .fill(prefsBinding.wrappedValue.routingMode == .internalSynth ? Color.secondary : Color.cyan)
+                        .frame(width: 8, height: 8)
+                    Text("Virtual MIDI Source: 'MacTrautonium MPE' active in system. Ready for DAWs (Logic, Ableton, Bitwig, Reaper).")
+                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    if prefsBinding.wrappedValue.midiMode == .mpe {
+                        Text("MPE Lower Zone: Ch 2-16")
+                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.cyan.opacity(0.15))
+                            .foregroundColor(.cyan)
+                            .cornerRadius(4)
+                    }
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Color(white: 0.12))
+                .cornerRadius(6)
+            }
+            .padding(.top, 8)
+        }
     }
 
     private var scaleNotesBanner: some View {

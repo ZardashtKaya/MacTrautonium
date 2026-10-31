@@ -19,6 +19,7 @@ public final class AppState: ObservableObject {
     @Published public var isSavePresetSheetPresented: Bool = false
     @Published public var presetNameInput: String = ""
     @Published public var peakLevels: (left: Float, right: Float) = (0.0, 0.0)
+    @Published public var availableMIDIDestinations: [String] = []
 
     @Published public var isPlayMode: Bool = false {
         didSet {
@@ -39,6 +40,7 @@ public final class AppState: ObservableObject {
 
         startEngine()
         reloadUserPresets()
+        refreshMIDIDestinations()
         setupDisplayTimer()
         setupKeyMonitor()
     }
@@ -110,6 +112,21 @@ public final class AppState: ObservableObject {
 
     public func openPresetsFolder() {
         NSWorkspace.shared.activateFileViewerSelecting([PresetLibrary.userPresetsDirectory])
+    }
+
+    // MARK: - Audio & MIDI Routing
+
+    public func setRoutingMode(_ mode: OutputRoutingMode) {
+        prefs.routingMode = mode
+        updatePrefs()
+    }
+
+    public func refreshMIDIDestinations() {
+        self.availableMIDIDestinations = MIDIManager.shared.getAvailableDestinations()
+    }
+
+    public func sendMIDIPanic() {
+        MIDIManager.shared.panic()
     }
 
     // MARK: - Play Mode & Mouse Decoupling

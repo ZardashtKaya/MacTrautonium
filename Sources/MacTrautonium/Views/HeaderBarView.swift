@@ -114,6 +114,11 @@ public struct HeaderBarView: View {
 
             Divider().frame(height: 22)
 
+            // Global Routing Mode (Internal Synth vs MIDI Out vs Both)
+            routingModeSwitcher
+
+            Divider().frame(height: 22)
+
             // Play Mode Toggle Button
             Button(action: {
                 state.togglePlayMode()
@@ -230,6 +235,53 @@ public struct HeaderBarView: View {
             .padding(22)
             .frame(width: 320)
         }
+    }
+
+    private var routingModeSwitcher: some View {
+        HStack(spacing: 2) {
+            ForEach(OutputRoutingMode.allCases, id: \.self) { mode in
+                Button(action: {
+                    state.setRoutingMode(mode)
+                }) {
+                    HStack(spacing: 4) {
+                        if mode == .internalSynth {
+                            Image(systemName: "waveform")
+                                .font(.system(size: 9))
+                        } else if mode == .midiOut {
+                            Image(systemName: "pianokeys")
+                                .font(.system(size: 9))
+                        } else {
+                            Image(systemName: "waveform.badge.plus")
+                                .font(.system(size: 9))
+                        }
+                        Text(mode.shortTitle)
+                            .font(.system(size: 10, weight: state.prefs.routingMode == mode ? .bold : .medium))
+                    }
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 4)
+                    .background(
+                        state.prefs.routingMode == mode
+                            ? (mode == .midiOut ? Color.cyan.opacity(0.35) : (mode == .both ? Color.purple.opacity(0.35) : Color(red: 0.98, green: 0.45, blue: 0.55).opacity(0.35)))
+                            : Color.clear
+                    )
+                    .foregroundColor(
+                        state.prefs.routingMode == mode
+                            ? (mode == .midiOut ? Color.cyan : (mode == .both ? Color(red: 0.8, green: 0.6, blue: 1.0) : Color(red: 0.98, green: 0.45, blue: 0.55)))
+                            : Color.secondary
+                    )
+                    .cornerRadius(6)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(2)
+        .background(Color(white: 0.16))
+        .cornerRadius(8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color(white: 0.25), lineWidth: 0.5)
+        )
+        .help("Global Output Routing: Internal Synth Only, MIDI Out / MPE Only, or Both")
     }
 
     private func formatDuration(_ duration: TimeInterval) -> String {

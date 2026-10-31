@@ -94,6 +94,7 @@ public final class AudioEngineController: @unchecked Sendable {
         guard isRunning else { return }
         audioEngine.stop()
         TouchInputManager.shared.stop()
+        MIDIManager.shared.silenceAllVoices()
         isRunning = false
     }
 
@@ -132,6 +133,34 @@ public final class AudioEngineController: @unchecked Sendable {
         let activeTouchIds = Set(touches.map { $0.id })
         pitchTrackers = pitchTrackers.filter { activeTouchIds.contains($0.key) }
 
+        // Process MIDI Out / MPE
+        let routing = activePrefs.routingMode
+        let snapshots = voiceManager.getSnapshots()
+        if routing == .midiOut || routing == .both {
+            MIDIManager.shared.processSnapshots(snapshots, prefs: activePrefs)
+        } else {
+            MIDIManager.shared.silenceAllVoices()
+        }
+
+        let abl = UnsafeMutableAudioBufferListPointer(audioBufferList)
+        guard let mDataL = abl[0].mData, let mDataR = abl[1].mData else { return }
+        let outL = mDataL.assumingMemoryBound(to: Float.self)
+        let outR = mDataR.assumingMemoryBound(to: Float.self)
+
+        // In MIDI Out mode, mute internal synth synthesis and output silence
+        if routing == .midiOut {
+            outL.initialize(repeating: 0, count: frameCount)
+            outR.initialize(repeating: 0, count: frameCount)
+
+            stateLock.lock()
+            currentPeakL = currentPeakL * 0.85
+            currentPeakR = currentPeakR * 0.85
+            stateLock.unlock()
+
+            scopeBuffer.write(samples: outL, count: frameCount)
+            return
+        }
+
         // Render synth voices into temporary left and right buffers
         tempLeftBuffer.withUnsafeMutableBufferPointer { leftPtr in
             tempRightBuffer.withUnsafeMutableBufferPointer { rightPtr in
@@ -152,11 +181,6 @@ public final class AudioEngineController: @unchecked Sendable {
         let delayTime = activePatch.echoTimeMs
         let delayFb = activePatch.echoFeedback
         let revMix = activePatch.reverbMix
-
-        let abl = UnsafeMutableAudioBufferListPointer(audioBufferList)
-        guard let mDataL = abl[0].mData, let mDataR = abl[1].mData else { return }
-        let outL = mDataL.assumingMemoryBound(to: Float.self)
-        let outR = mDataR.assumingMemoryBound(to: Float.self)
 
         var maxL: Float = 0
         var maxR: Float = 0
