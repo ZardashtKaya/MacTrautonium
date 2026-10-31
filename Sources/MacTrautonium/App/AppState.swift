@@ -20,6 +20,7 @@ public final class AppState: ObservableObject {
     @Published public var presetNameInput: String = ""
     @Published public var peakLevels: (left: Float, right: Float) = (0.0, 0.0)
     @Published public var availableMIDIDestinations: [String] = []
+    @Published public var availableAudioDevices: [AudioOutputDevice] = []
 
     @Published public var isPlayMode: Bool = false {
         didSet {
@@ -53,6 +54,7 @@ public final class AppState: ObservableObject {
         setupKeyMonitor()
         reloadUserPresets()
         refreshMIDIDestinations()
+        refreshAudioDevices()
         setupDisplayTimer()
     }
 
@@ -145,6 +147,22 @@ public final class AppState: ObservableObject {
 
     public func refreshMIDIDestinations() {
         self.availableMIDIDestinations = MIDIManager.shared.getAvailableDestinations()
+    }
+
+    public func refreshAudioDevices() {
+        self.availableAudioDevices = AudioDeviceManager.shared.getAvailableOutputDevices()
+    }
+
+    public func selectAudioOutputDevice(uid: String) {
+        prefs.selectedAudioOutputDeviceUID = uid
+        updatePrefs()
+        if !isPluginMode {
+            do {
+                try AudioEngineController.shared.setOutputDevice(uid: uid)
+            } catch {
+                print("[AppState] Error switching audio output device: \(error)")
+            }
+        }
     }
 
     public func sendMIDIPanic() {

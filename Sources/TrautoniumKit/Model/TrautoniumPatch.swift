@@ -81,38 +81,44 @@ public struct ManualParams: Codable, Sendable, Equatable {
 }
 
 public struct TrautoniumPatch: Codable, Sendable, Equatable {
-    public var name: String = "Mixtur Classic"
+    public var name: String = "live"
     public var manuals: [ManualParams] = [
         ManualParams(), // Manual I (Upper)
         ManualParams()  // Manual II (Lower)
     ]
     public var isSplit: Bool = true        // Split trackpad into 2 manuals (top/bottom)
-    public var scaleIndex: Int = 0         // Scale index (0 = Chromatic)
-    public var tonic: Int = 9              // Tonic pitch class (0=C, 9=A)
-    public var reverbMix: Float = 0.25     // Stereo Reverb dry/wet
+    public var scaleIndex: Int = 15        // Scale index (15 = Harmonic Minor)
+    public var tonic: Int = 7              // Tonic pitch class (0=C, 7=G)
+    public var reverbMix: Float = 0.90     // Stereo Reverb dry/wet
     public var echoMix: Float = 0.0        // Stereo Tape Delay mix
     public var echoTimeMs: Float = 350.0   // Delay time in ms
     public var echoFeedback: Float = 0.35  // Delay feedback
-    public var saturation: Float = 0.15    // Analog soft-clipping warmth
+    public var saturation: Float = 0.80    // Analog soft-clipping warmth
 
     public init() {
         // Configure default Manual I (Lead/Melody)
         manuals[0].lowNote = 57            // A3..A5
         manuals[0].span = 2
+        manuals[0].snapMode = .hard
         manuals[0].waveform = .sawtooth
         manuals[0].subDividers = [2, 3, 4, 5]
         manuals[0].subLevels = [0.55, 0.40, 0.30, 0.20]
         manuals[0].vowel = -1              // Pure raw subharmonic mixture
         manuals[0].cutoff = 2200.0
+        manuals[0].resonance = 0.15
+        manuals[0].volume = 0.65
 
         // Configure default Manual II (Bass/Mixtur)
         manuals[1].lowNote = 45            // A2..A4 (one octave lower)
         manuals[1].span = 2
+        manuals[1].snapMode = .hard
         manuals[1].waveform = .neon
         manuals[1].subDividers = [2, 4, 6, 8]
         manuals[1].subLevels = [0.50, 0.50, 0.25, 0.25]
-        manuals[1].vowel = 0               // Vowel "A" formant active
+        manuals[1].vowel = -1
         manuals[1].register = 0            // Bass register
         manuals[1].cutoff = 1400.0
+        manuals[1].resonance = 0.15
+        manuals[1].volume = 0.65
     }
 }

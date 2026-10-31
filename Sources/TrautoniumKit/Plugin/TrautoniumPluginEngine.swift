@@ -61,7 +61,7 @@ public final class TrautoniumPluginEngine: @unchecked Sendable {
         self.reverbEffect = StereoReverb(sampleRate: sampleRate)
         self.scopeBuffer = ScopeRingBuffer(capacity: 2048)
 
-        let p = TrautoniumPatch()
+        let p = PresetLibrary.defaultPatch
         let pf = TrautoniumPrefs()
         self.patch = p
         self.prefs = pf

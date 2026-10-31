@@ -2,6 +2,7 @@ import Foundation
 
 public struct PresetLibrary {
     public static let factoryPresets: [TrautoniumPatch] = [
+        createLivePreset(),
         createMixturClassic(),
         createHitchcockBirds(),
         createDeepChurchOrgan(),
@@ -9,6 +10,73 @@ public struct PresetLibrary {
         createCelloAndBass(),
         createSubharmonicBells()
     ]
+
+    /// Default patch loaded on initial startup. Checks for any user-saved preset named "live", falling back to the factory "live" preset.
+    public static var defaultPatch: TrautoniumPatch {
+        if let userLive = loadUserPresets().first(where: { $0.name.lowercased() == "live" }) {
+            return userLive
+        }
+        return createLivePreset()
+    }
+
+    public static func createLivePreset() -> TrautoniumPatch {
+        var p = TrautoniumPatch()
+        p.name = "live"
+        p.isSplit = true
+        p.scaleIndex = 15 // Harmonic Minor
+        p.tonic = 7       // G
+        p.reverbMix = 0.90
+        p.saturation = 0.80
+        p.echoMix = 0.0
+        p.echoTimeMs = 350.0
+        p.echoFeedback = 0.35
+
+        // Manual I (Upper)
+        p.manuals[0].lowNote = 57 // A3
+        p.manuals[0].span = 2
+        p.manuals[0].snapMode = .hard
+        p.manuals[0].waveform = .sawtooth
+        p.manuals[0].mainLevel = 0.8
+        p.manuals[0].subDividers = [2, 3, 4, 5]
+        p.manuals[0].subLevels = [0.55, 0.40, 0.30, 0.20]
+        p.manuals[0].cutoff = 2200.0
+        p.manuals[0].resonance = 0.15
+        p.manuals[0].volume = 0.65
+        p.manuals[0].vowel = -1
+        p.manuals[0].register = 1
+        p.manuals[0].analogDrift = 0.2
+        p.manuals[0].pressureBrightness = 0.6
+        p.manuals[0].attackMs = 5.0
+        p.manuals[0].decayMs = 300.0
+        p.manuals[0].sustain = 1.0
+        p.manuals[0].releaseMs = 120.0
+        p.manuals[0].glideMs = 20.0
+        p.manuals[0].isMono = false
+
+        // Manual II (Lower)
+        p.manuals[1].lowNote = 45 // A2
+        p.manuals[1].span = 2
+        p.manuals[1].snapMode = .hard
+        p.manuals[1].waveform = .neon
+        p.manuals[1].mainLevel = 0.8
+        p.manuals[1].subDividers = [2, 4, 6, 8]
+        p.manuals[1].subLevels = [0.50, 0.50, 0.25, 0.25]
+        p.manuals[1].cutoff = 1400.0
+        p.manuals[1].resonance = 0.15
+        p.manuals[1].volume = 0.65
+        p.manuals[1].vowel = -1
+        p.manuals[1].register = 0
+        p.manuals[1].analogDrift = 0.2
+        p.manuals[1].pressureBrightness = 0.6
+        p.manuals[1].attackMs = 5.0
+        p.manuals[1].decayMs = 300.0
+        p.manuals[1].sustain = 1.0
+        p.manuals[1].releaseMs = 120.0
+        p.manuals[1].glideMs = 20.0
+        p.manuals[1].isMono = false
+
+        return p
+    }
 
     public static func createMixturClassic() -> TrautoniumPatch {
         var p = TrautoniumPatch()

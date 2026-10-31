@@ -45,5 +45,8 @@ public struct TrautoniumPrefs: Codable, Sendable, Equatable {
     public var sendAftertouch: Bool = true      // Force Touch pressure to Channel Aftertouch
     public var selectedMIDIDestinationName: String = "Virtual Port (MacTrautonium MPE)"
 
+    // Audio Output Configuration
+    public var selectedAudioOutputDeviceUID: String = "" // Empty = System Default Output
+
     public init() {}
 }

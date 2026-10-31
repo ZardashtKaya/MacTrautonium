@@ -3,10 +3,23 @@ import XCTest
 
 final class PresetTests: XCTestCase {
     func testFactoryPresetsExist() {
-        XCTAssertGreaterThanOrEqual(PresetLibrary.factoryPresets.count, 6)
+        XCTAssertGreaterThanOrEqual(PresetLibrary.factoryPresets.count, 7)
+        XCTAssertEqual(PresetLibrary.factoryPresets.first?.name, "live")
+        XCTAssertTrue(PresetLibrary.isFactoryPreset(named: "live"))
         XCTAssertTrue(PresetLibrary.isFactoryPreset(named: "Mixtur Classic (Sala)"))
         XCTAssertTrue(PresetLibrary.isFactoryPreset(named: "The Birds (Hitchcock)"))
         XCTAssertFalse(PresetLibrary.isFactoryPreset(named: "NonExistentPreset12345"))
+    }
+
+    func testLivePresetIsDefault() {
+        let defaultPatch = PresetLibrary.defaultPatch
+        XCTAssertEqual(defaultPatch.name.lowercased(), "live")
+        XCTAssertEqual(defaultPatch.scaleIndex, 15) // Harmonic Minor
+        XCTAssertEqual(defaultPatch.tonic, 7)       // G
+        XCTAssertEqual(defaultPatch.reverbMix, 0.90, accuracy: 1e-4)
+        XCTAssertEqual(defaultPatch.saturation, 0.80, accuracy: 1e-4)
+        XCTAssertEqual(defaultPatch.manuals[0].snapMode, .hard)
+        XCTAssertEqual(defaultPatch.manuals[1].snapMode, .hard)
     }
 
     func testSaveLoadDeleteUserPreset() throws {

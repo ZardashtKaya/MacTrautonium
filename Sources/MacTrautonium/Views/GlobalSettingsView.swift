@@ -227,6 +227,48 @@ public struct GlobalSettingsView: View {
                     }
                 }
 
+                // Audio Output Device (Standalone)
+                HStack(spacing: 20) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text("Audio output device")
+                                .font(.system(size: 11, weight: .regular))
+                                .foregroundColor(TrautoniumTheme.textSecondary)
+                            Spacer()
+                            if !state.isPluginMode {
+                                Button(action: {
+                                    state.refreshAudioDevices()
+                                }) {
+                                    Image(systemName: "arrow.clockwise")
+                                        .font(.system(size: 9))
+                                        .foregroundColor(TrautoniumTheme.textMuted)
+                                }
+                                .buttonStyle(.plain)
+                                .help("Refresh audio output devices")
+                            }
+                        }
+
+                        if state.isPluginMode {
+                            Text("Host DAW Output (Managed by AUv2 / VST3)")
+                                .font(.system(size: 11, weight: .regular))
+                                .foregroundColor(TrautoniumTheme.textMuted)
+                        } else {
+                            Picker("", selection: Binding(
+                                get: { state.prefs.selectedAudioOutputDeviceUID },
+                                set: { state.selectAudioOutputDevice(uid: $0) }
+                            )) {
+                                Text("System Default Output").tag("")
+                                ForEach(state.availableAudioDevices) { dev in
+                                    Text(dev.name).tag(dev.uid)
+                                }
+                            }
+                            .frame(minWidth: 240)
+                        }
+                    }
+
+                    Spacer()
+                }
+
                 HStack(spacing: 20) {
                     // Destination Selector
                     VStack(alignment: .leading, spacing: 4) {

@@ -37,6 +37,7 @@ public final class AudioEngineController: @unchecked Sendable {
     private var cachedPatch: TrautoniumPatch
     private var cachedPrefs: TrautoniumPrefs
     public private(set) var isRunning: Bool = false
+    public private(set) var currentOutputDeviceID: AudioDeviceID?
 
     private var currentPeakL: Float = 0
     private var currentPeakR: Float = 0
@@ -55,7 +56,7 @@ public final class AudioEngineController: @unchecked Sendable {
         self.scopeBuffer = ScopeRingBuffer(capacity: 2048)
         self.audioRecorder = AudioRecorder()
 
-        let p = TrautoniumPatch()
+        let p = PresetLibrary.defaultPatch
         let pf = TrautoniumPrefs()
         self.patch = p
         self.prefs = pf
@@ -84,10 +85,56 @@ public final class AudioEngineController: @unchecked Sendable {
 
     public func start() throws {
         guard !isRunning else { return }
+
+        // Configure output device if user selected a custom device
+        if !prefs.selectedAudioOutputDeviceUID.isEmpty {
+            if let dev = AudioDeviceManager.shared.getDevice(forUID: prefs.selectedAudioOutputDeviceUID) {
+                try? audioEngine.outputNode.auAudioUnit.setDeviceID(dev.id)
+                currentOutputDeviceID = dev.id
+            }
+        }
+
         try audioEngine.start()
         isRunning = true
         TouchInputManager.shared.start()
         print("[AudioEngineController] Started AVAudioEngine at \(sampleRate) Hz")
+    }
+
+    public func setOutputDevice(deviceID: AudioDeviceID) throws {
+        let wasRunning = isRunning
+        if wasRunning {
+            audioEngine.pause()
+        }
+
+        do {
+            try audioEngine.outputNode.auAudioUnit.setDeviceID(deviceID)
+            currentOutputDeviceID = deviceID
+            if wasRunning {
+                try audioEngine.start()
+            }
+            print("[AudioEngineController] Switched output audio device to ID \(deviceID)")
+        } catch {
+            print("[AudioEngineController] Error switching to output device ID \(deviceID): \(error)")
+            if wasRunning && !audioEngine.isRunning {
+                try? audioEngine.start()
+            }
+            throw error
+        }
+    }
+
+    public func setOutputDevice(uid: String) throws {
+        if uid.isEmpty {
+            // Restore default system output device
+            if let defaultDev = AudioDeviceManager.shared.getDefaultOutputDevice() {
+                try setOutputDevice(deviceID: defaultDev.id)
+            }
+            return
+        }
+        guard let dev = AudioDeviceManager.shared.getDevice(forUID: uid) else {
+            print("[AudioEngineController] Output device with UID '\(uid)' not found")
+            return
+        }
+        try setOutputDevice(deviceID: dev.id)
     }
 
     public func stop() {
