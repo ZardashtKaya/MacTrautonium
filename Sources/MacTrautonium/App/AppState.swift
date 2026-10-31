@@ -32,17 +32,25 @@ public final class AppState: ObservableObject {
     private var displayTimer: AnyCancellable?
     private var recordTimer: AnyCancellable?
     private var recordStartTime: Date?
+    public let pluginEngine: TrautoniumPluginEngine?
+    public var isPluginMode: Bool { pluginEngine != nil }
 
-    public init() {
-        let engine = AudioEngineController.shared
-        self.patch = engine.patch
-        self.prefs = engine.prefs
+    public init(pluginEngine: TrautoniumPluginEngine? = nil) {
+        self.pluginEngine = pluginEngine
+        if let pe = pluginEngine {
+            self.patch = pe.patch
+            self.prefs = pe.prefs
+        } else {
+            let engine = AudioEngineController.shared
+            self.patch = engine.patch
+            self.prefs = engine.prefs
+            startEngine()
+            setupKeyMonitor()
+        }
 
-        startEngine()
         reloadUserPresets()
         refreshMIDIDestinations()
         setupDisplayTimer()
-        setupKeyMonitor()
     }
 
     deinit {
@@ -64,11 +72,19 @@ public final class AppState: ObservableObject {
     }
 
     public func updatePatch() {
-        AudioEngineController.shared.patch = patch
+        if let pe = pluginEngine {
+            pe.patch = patch
+        } else {
+            AudioEngineController.shared.patch = patch
+        }
     }
 
     public func updatePrefs() {
-        AudioEngineController.shared.prefs = prefs
+        if let pe = pluginEngine {
+            pe.prefs = prefs
+        } else {
+            AudioEngineController.shared.prefs = prefs
+        }
     }
 
     public func loadPreset(_ preset: TrautoniumPatch) {
@@ -223,18 +239,21 @@ public final class AppState: ObservableObject {
             .autoconnect()
             .sink { [weak self] _ in
                 guard let self = self else { return }
-                let engine = AudioEngineController.shared
 
-                // Update active touch snapshots for ribbon UI
-                self.activeTouches = engine.voiceManager.getSnapshots()
-
-                // Update oscilloscope buffer
-                var samples = [Float](repeating: 0, count: 256)
-                engine.scopeBuffer.snapshot(into: &samples)
-                self.scopeWaveform = samples
-
-                // Update stereo peak levels for VU meters
-                self.peakLevels = engine.getPeakLevels()
+                if let pe = self.pluginEngine {
+                    self.activeTouches = pe.voiceManager.getSnapshots()
+                    var samples = [Float](repeating: 0, count: 256)
+                    pe.scopeBuffer.snapshot(into: &samples)
+                    self.scopeWaveform = samples
+                    self.peakLevels = pe.getPeakLevels()
+                } else {
+                    let engine = AudioEngineController.shared
+                    self.activeTouches = engine.voiceManager.getSnapshots()
+                    var samples = [Float](repeating: 0, count: 256)
+                    engine.scopeBuffer.snapshot(into: &samples)
+                    self.scopeWaveform = samples
+                    self.peakLevels = engine.getPeakLevels()
+                }
             }
     }
 }

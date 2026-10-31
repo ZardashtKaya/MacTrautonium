@@ -8,7 +8,8 @@ let package = Package(
     ],
     products: [
         .executable(name: "MacTrautonium", targets: ["MacTrautonium"]),
-        .library(name: "TrautoniumKit", targets: ["TrautoniumKit"])
+        .library(name: "TrautoniumKit", targets: ["TrautoniumKit"]),
+        .library(name: "MacTrautoniumLib", targets: ["MacTrautoniumLib"])
     ],
     targets: [
         .target(
@@ -16,14 +17,19 @@ let package = Package(
             dependencies: [],
             path: "Sources/TrautoniumKit"
         ),
-        .executableTarget(
-            name: "MacTrautonium",
+        .target(
+            name: "MacTrautoniumLib",
             dependencies: ["TrautoniumKit"],
             path: "Sources/MacTrautonium"
         ),
+        .executableTarget(
+            name: "MacTrautonium",
+            dependencies: ["MacTrautoniumLib", "TrautoniumKit"],
+            path: "Sources/MacTrautoniumApp"
+        ),
         .testTarget(
             name: "MacTrautoniumTests",
-            dependencies: ["TrautoniumKit"],
+            dependencies: ["TrautoniumKit", "MacTrautoniumLib"],
             path: "Tests/MacTrautoniumTests"
         )
     ]

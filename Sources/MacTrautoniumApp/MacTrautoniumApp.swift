@@ -1,5 +1,7 @@
 import SwiftUI
 import AppKit
+import MacTrautoniumLib
+import TrautoniumKit
 
 @main
 struct MacTrautoniumApp: App {

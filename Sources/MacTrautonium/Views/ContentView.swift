@@ -2,9 +2,11 @@ import SwiftUI
 import TrautoniumKit
 
 public struct ContentView: View {
-    @StateObject private var state = AppState()
+    @ObservedObject public var state: AppState
 
-    public init() {}
+    public init(state: AppState? = nil) {
+        self.state = state ?? AppState()
+    }
 
     public var body: some View {
         VStack(spacing: 0) {

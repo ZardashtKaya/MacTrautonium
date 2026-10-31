@@ -55,14 +55,22 @@ public final class VoiceManager: @unchecked Sendable {
         ]
     }
 
-    private func findVoice(owner: Int) -> SynthVoice? {
+    public func setSampleRate(_ newRate: Float) {
+        lock.lock()
+        defer { lock.unlock() }
+        for fb in formantBanks {
+            fb.setSampleRate(newRate)
+        }
+    }
+
+    public func findVoice(owner: Int) -> SynthVoice? {
         for v in voices where v.isActive && v.ownerId == owner {
             return v
         }
         return nil
     }
 
-    private func allocateVoice() -> SynthVoice {
+    public func allocateVoice() -> SynthVoice {
         for v in voices where !v.isActive {
             return v
         }
@@ -83,6 +91,76 @@ public final class VoiceManager: @unchecked Sendable {
             }
         }
         return quietest
+    }
+
+    public func noteOn(owner: Int, manual: Int, midiNote: Float, velocity: Float, minLevel: Float = 0.0) {
+        lock.lock()
+        defer { lock.unlock() }
+
+        let voice: SynthVoice
+        if let existing = findVoice(owner: owner) {
+            voice = existing
+        } else {
+            voice = allocateVoice()
+        }
+
+        voice.trigger(
+            owner: owner,
+            manual: manual,
+            midiNote: midiNote,
+            pressure: velocity,
+            touchId: owner,
+            minLevel: minLevel
+        )
+    }
+
+    public func noteOff(owner: Int) {
+        lock.lock()
+        defer { lock.unlock() }
+
+        if let v = findVoice(owner: owner) {
+            v.releaseGate()
+        }
+    }
+
+    public func updatePitch(owner: Int, newMidiNote: Float) {
+        lock.lock()
+        defer { lock.unlock() }
+
+        if let v = findVoice(owner: owner) {
+            v.targetLogHz = SynthVoice.noteToLog2Hz(newMidiNote)
+        }
+    }
+
+    public func updatePressure(owner: Int, pressure: Float) {
+        lock.lock()
+        defer { lock.unlock() }
+
+        if let v = findVoice(owner: owner) {
+            v.normalizedPressure += (pressure - v.normalizedPressure) * 0.35
+            v.targetLevel = max(0.0, min(1.0, pressure))
+        }
+    }
+
+    public func allNotesOff() {
+        lock.lock()
+        defer { lock.unlock() }
+
+        for v in voices {
+            v.releaseGate()
+        }
+    }
+
+    public func panic() {
+        lock.lock()
+        defer { lock.unlock() }
+
+        for v in voices {
+            v.reset()
+        }
+        for fb in formantBanks {
+            fb.reset()
+        }
     }
 
     public func updateTouches(

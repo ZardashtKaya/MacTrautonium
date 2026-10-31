@@ -8,13 +8,19 @@ public final class StereoDelay: @unchecked Sendable {
     private var filterL: Float = 0
     private var filterR: Float = 0
     private var currentDelaySamples: Float = 0
-    private let sampleRate: Float
+    private var sampleRate: Float
 
     public init(sampleRate: Float = 48000.0) {
         self.sampleRate = sampleRate
         self.bufferL = [Float](repeating: 0, count: maxDelayFrames)
         self.bufferR = [Float](repeating: 0, count: maxDelayFrames)
         self.currentDelaySamples = 350.0 * sampleRate / 1000.0
+    }
+
+    public func setSampleRate(_ newRate: Float) {
+        guard newRate > 0 && newRate != sampleRate else { return }
+        self.sampleRate = newRate
+        reset()
     }
 
     public func reset() {
@@ -88,8 +94,10 @@ public final class StereoReverb: @unchecked Sendable {
     private var combR: [Comb]
     private var allpassL: [Allpass]
     private var allpassR: [Allpass]
+    private var sampleRate: Float
 
     public init(sampleRate: Float = 48000.0) {
+        self.sampleRate = sampleRate
         let combLengths = [1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617]
         let allpassLengths = [556, 441, 341, 225]
         let scale = sampleRate / 44100.0
@@ -110,6 +118,32 @@ public final class StereoReverb: @unchecked Sendable {
             let l = Int(Float(len + 23) * scale)
             return Allpass(buffer: [Float](repeating: 0, count: l), pos: 0, length: l)
         }
+    }
+
+    public func setSampleRate(_ newRate: Float) {
+        guard newRate > 0 && newRate != sampleRate else { return }
+        self.sampleRate = newRate
+        let combLengths = [1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617]
+        let allpassLengths = [556, 441, 341, 225]
+        let scale = newRate / 44100.0
+
+        combL = combLengths.map { len in
+            let l = Int(Float(len) * scale)
+            return Comb(buffer: [Float](repeating: 0, count: l), pos: 0, store: 0, length: l)
+        }
+        combR = combLengths.map { len in
+            let l = Int(Float(len + 23) * scale)
+            return Comb(buffer: [Float](repeating: 0, count: l), pos: 0, store: 0, length: l)
+        }
+        allpassL = allpassLengths.map { len in
+            let l = Int(Float(len) * scale)
+            return Allpass(buffer: [Float](repeating: 0, count: l), pos: 0, length: l)
+        }
+        allpassR = allpassLengths.map { len in
+            let l = Int(Float(len + 23) * scale)
+            return Allpass(buffer: [Float](repeating: 0, count: l), pos: 0, length: l)
+        }
+        reset()
     }
 
     public func reset() {

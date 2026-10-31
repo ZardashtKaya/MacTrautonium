@@ -51,10 +51,23 @@ public final class FormantBank: @unchecked Sendable {
 
     private var currentVowel: Int = -2
     private var currentRegister: Int = -2
-    private let sampleRate: Float
+    private var sampleRate: Float
 
     public init(sampleRate: Float = 48000.0) {
         self.sampleRate = sampleRate
+    }
+
+    public func setSampleRate(_ newRate: Float) {
+        guard newRate > 0 && newRate != sampleRate else { return }
+        self.sampleRate = newRate
+        currentVowel = -2
+        currentRegister = -2
+    }
+
+    public func reset() {
+        for i in 0..<4 {
+            filters[i].reset()
+        }
     }
 
     public func update(vowel: Int, register: Int) {
