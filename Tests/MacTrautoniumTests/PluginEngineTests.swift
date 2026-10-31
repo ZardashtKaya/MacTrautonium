@@ -88,7 +88,8 @@ final class PluginEngineTests: XCTestCase {
         // 5. Remove touch (finger lifted)
         TouchInputManager.shared.removeFallbackTouch(id: 4242)
 
-        // Reset & panic
+        // Reset, disable touch & panic to test clean silence
+        engine.isTouchInputEnabled = false
         engine.panic()
         engine.render(left: &left, right: &right, frameCount: 512)
         let finalSilent = left.map { abs($0) }.max() ?? 0

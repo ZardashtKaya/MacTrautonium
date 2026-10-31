@@ -55,6 +55,12 @@ public final class MIDIManager: @unchecked Sendable {
 
     public private(set) var activeVoiceCount: Int = 0
 
+    public func getActiveVoiceState(for touchId: Int) -> MPEVoiceState? {
+        lock.lock()
+        defer { lock.unlock() }
+        return activeVoices[touchId]
+    }
+
     private init() {
         setupCoreMIDI()
     }
@@ -205,8 +211,6 @@ public final class MIDIManager: @unchecked Sendable {
             currentActiveIds.insert(snapshot.id)
 
             let sounding = snapshot.soundingMidi
-            let baseNote = UInt8(max(0, min(127, Int(round(sounding)))))
-            let bend14 = calculatePitchBend14(soundingMidi: sounding, baseNote: baseNote, bendRange: bendRange)
             let pressure7 = UInt8(max(0, min(127, Int(snapshot.normalizedPressure * 127.0))))
             let cc74 = UInt8(max(0, min(127, Int((1.0 - snapshot.y) * 127.0))))
 
@@ -214,7 +218,8 @@ public final class MIDIManager: @unchecked Sendable {
                 // UPDATE EXISTING VOICE
                 let ch = voice.channel
 
-                // Continuous Pitch Bend
+                // Continuous Pitch Bend relative to this voice's original baseNote
+                let bend14 = calculatePitchBend14(soundingMidi: sounding, baseNote: voice.baseNote, bendRange: bendRange)
                 if bend14 != voice.lastPitchBend14 {
                     messages.append([0xE0 | (ch - 1), UInt8(bend14 & 0x7F), UInt8((bend14 >> 7) & 0x7F)])
                     voice.lastPitchBend14 = bend14
@@ -254,6 +259,8 @@ public final class MIDIManager: @unchecked Sendable {
                     ch = baseChannel
                 }
 
+                let baseNote = UInt8(max(0, min(127, Int(round(sounding)))))
+                let bend14 = calculatePitchBend14(soundingMidi: sounding, baseNote: baseNote, bendRange: bendRange)
                 let velocity = UInt8(max(20, min(127, Int(snapshot.normalizedPressure * 127.0))))
 
                 if isMPE {

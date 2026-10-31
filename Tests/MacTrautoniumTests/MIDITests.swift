@@ -70,20 +70,27 @@ final class MIDITests: XCTestCase {
         midiManager.processSnapshots([touch1, touch2], prefs: prefs)
         XCTAssertEqual(midiManager.activeVoiceCount, 2, "Should have 2 active MPE voices")
 
-        // 3. Gliding touch 1 smoothly from 60.25 to 61.50
+        // 3. Gliding touch 1 smoothly from 60.25 to 72.0 (+12 semitones, 1 full octave)
         let touch1Glided = SynthTouchSnapshot(
             id: 101,
             manual: 0,
-            x: 0.30,
+            x: 0.50,
             y: 0.30,
             pressureGrams: 50.0,
             normalizedPressure: 0.50,
-            rawMidi: 61.50,
-            soundingMidi: 61.50,
+            rawMidi: 72.0,
+            soundingMidi: 72.0,
             isGateOn: true
         )
         midiManager.processSnapshots([touch1Glided, touch2], prefs: prefs)
         XCTAssertEqual(midiManager.activeVoiceCount, 2, "Voices should remain stable during glide")
+
+        let voice1 = midiManager.getActiveVoiceState(for: 101)
+        XCTAssertEqual(voice1?.baseNote, 60, "Base note must remain anchored to original touch note")
+        // Expected bend for +12 semitones on 48 bend range: (12/48) * 8191 + 8192 = 10240
+        XCTAssertEqual(voice1?.lastPitchBend14, 10240, "Pitch bend must bend by +12 semitones to target note")
+        let msb = ((voice1?.lastPitchBend14 ?? 0) >> 7) & 0x7F
+        XCTAssertEqual(msb, 80, "Pitch bend MSB must be 80 for +12 semitones (not 63 or 64)")
 
         // 4. Release touch 1 (finger lifted)
         midiManager.processSnapshots([touch2], prefs: prefs)

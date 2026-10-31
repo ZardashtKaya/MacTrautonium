@@ -88,6 +88,9 @@ public final class AppState: ObservableObject {
         } else {
             AudioEngineController.shared.prefs = prefs
         }
+        if prefs.midiMode == .mpe {
+            MIDIManager.shared.sendMPEConfiguration(memberChannels: 15, pitchBendRange: UInt8(max(1, min(96, prefs.mpeBendRange))))
+        }
     }
 
     public func loadPreset(_ preset: TrautoniumPatch) {
