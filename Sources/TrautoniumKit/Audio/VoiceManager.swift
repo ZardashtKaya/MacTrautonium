@@ -174,8 +174,8 @@ public final class VoiceManager: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
 
-        // Clear claim flags
-        for v in voices { v.isClaimed = false }
+        // Clear claim flags for touch-driven voices
+        for v in voices where v.ownerId < 10000 { v.isClaimed = false }
 
         var newSnapshots: [SynthTouchSnapshot] = []
 
@@ -253,8 +253,8 @@ public final class VoiceManager: @unchecked Sendable {
             ))
         }
 
-        // Release voices that were not claimed by any active touch
-        for v in voices where v.isActive && !v.isClaimed {
+        // Release touch voices that were not claimed by any active touch
+        for v in voices where v.isActive && !v.isClaimed && v.ownerId < 10000 {
             v.releaseGate()
         }
 

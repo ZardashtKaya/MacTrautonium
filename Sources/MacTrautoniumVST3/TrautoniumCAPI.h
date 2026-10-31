@@ -9,6 +9,8 @@ void* trautonium_create(double sampleRate);
 void trautonium_destroy(void* handle);
 void trautonium_set_sample_rate(void* handle, double sampleRate);
 void trautonium_reset(void* handle);
+void trautonium_set_touch_enabled(void* handle, bool enabled);
+void trautonium_set_active_instance(void* handle);
 
 void trautonium_note_on(void* handle, int32_t channel, int32_t note, float velocity);
 void trautonium_note_off(void* handle, int32_t channel, int32_t note);

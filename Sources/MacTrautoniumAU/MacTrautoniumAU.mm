@@ -31,7 +31,10 @@
     OSStatus err = AudioUnitGetProperty(inAudioUnit, kMacTrautoniumProperty_EngineHandle, kAudioUnitScope_Global, 0, &engine, &size);
     if (err != noErr || !engine) return nil;
 
-    NSView* v = (__bridge_transfer NSView*)trautonium_create_view(engine);
+    void* viewHandle = trautonium_create_view(engine);
+    if (!viewHandle) return nil;
+    trautonium_set_active_instance(engine);
+    NSView* v = (__bridge_transfer NSView*)viewHandle;
     return v;
 }
 

@@ -4,6 +4,7 @@ import XCTest
 final class PluginEngineTests: XCTestCase {
     func testPluginEngineLifecycleAndRendering() {
         let engine = TrautoniumPluginEngine(sampleRate: 48000.0)
+        engine.isTouchInputEnabled = false
 
         var left = [Float](repeating: 0, count: 512)
         var right = [Float](repeating: 0, count: 512)
@@ -55,5 +56,42 @@ final class PluginEngineTests: XCTestCase {
         engine.render(left: &left, right: &right, frameCount: 256)
         let maxL = left.map { abs($0) }.max() ?? 0
         XCTAssertGreaterThan(maxL, 0.001)
+    }
+
+    func testPluginEngineTouchInputRecognition() {
+        let engine = TrautoniumPluginEngine(sampleRate: 48000.0)
+        TrautoniumPluginEngine.activeInstance = engine
+        engine.isTouchInputEnabled = true
+
+        var left = [Float](repeating: 0, count: 512)
+        var right = [Float](repeating: 0, count: 512)
+
+        // Clear any leftover fallback touches
+        TouchInputManager.shared.clearFallbackTouches()
+
+        // 1. Initial render
+        engine.render(left: &left, right: &right, frameCount: 512)
+
+        // 2. Set active touch (simulating finger touch on ribbon)
+        TouchInputManager.shared.setFallbackTouch(id: 4242, x: 0.5, y: 0.25, pressure: 0.85)
+
+        // 3. Render audio: touch input should be recognized and voices triggered
+        engine.render(left: &left, right: &right, frameCount: 512)
+        let touchAudioMax = left.map { abs($0) }.max() ?? 0
+        XCTAssertGreaterThan(touchAudioMax, 0.01, "Expected audible output from touch input in plugin engine")
+
+        // 4. Verify touch snapshot is captured for UI visualization
+        let snapshots = engine.voiceManager.getSnapshots()
+        XCTAssertFalse(snapshots.isEmpty, "VoiceManager must contain active touch snapshot")
+        XCTAssertTrue(snapshots.contains { $0.id == 4242 })
+
+        // 5. Remove touch (finger lifted)
+        TouchInputManager.shared.removeFallbackTouch(id: 4242)
+
+        // Reset & panic
+        engine.panic()
+        engine.render(left: &left, right: &right, frameCount: 512)
+        let finalSilent = left.map { abs($0) }.max() ?? 0
+        XCTAssertEqual(finalSilent, 0.0, accuracy: 1e-4)
     }
 }

@@ -25,6 +25,18 @@ public func trautonium_reset(handle: UnsafeMutableRawPointer) {
     engine.panic()
 }
 
+@_cdecl("trautonium_set_touch_enabled")
+public func trautonium_set_touch_enabled(handle: UnsafeMutableRawPointer, enabled: Bool) {
+    let engine = Unmanaged<TrautoniumPluginEngine>.fromOpaque(handle).takeUnretainedValue()
+    engine.isTouchInputEnabled = enabled
+}
+
+@_cdecl("trautonium_set_active_instance")
+public func trautonium_set_active_instance(handle: UnsafeMutableRawPointer) {
+    let engine = Unmanaged<TrautoniumPluginEngine>.fromOpaque(handle).takeUnretainedValue()
+    TrautoniumPluginEngine.activeInstance = engine
+}
+
 @_cdecl("trautonium_note_on")
 public func trautonium_note_on(handle: UnsafeMutableRawPointer, channel: Int32, note: Int32, velocity: Float) {
     let engine = Unmanaged<TrautoniumPluginEngine>.fromOpaque(handle).takeUnretainedValue()

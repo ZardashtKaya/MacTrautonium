@@ -135,9 +135,10 @@ public final class TouchInputManager: @unchecked Sendable {
 
         var result: [TouchPoint] = []
         let now = CFAbsoluteTimeGetCurrent()
+        let isHardwareActive = (now - lastFrameTime) < 0.3
 
-        // Include hardware trackpad touches if received within last 1.0s
-        if (now - lastFrameTime) < 1.0 {
+        // Include hardware trackpad touches if received within last 0.3s
+        if isHardwareActive {
             for t in rawTouches {
                 let normP = normalizePressure(
                     pressureGrams: t.pressureGrams,
@@ -156,9 +157,12 @@ public final class TouchInputManager: @unchecked Sendable {
             }
         }
 
-        // Include fallback touches (mouse/keyboard)
+        // Include fallback touches (mouse drag / AppKit touch fallback)
+        // If hardware is active, skip AppKit trackpad touches to avoid duplicate touch IDs
         for (_, fb) in fallbackTouches {
-            result.append(fb)
+            if !isHardwareActive || !fb.isFromTrackpad {
+                result.append(fb)
+            }
         }
 
         return result
@@ -208,6 +212,26 @@ public final class TouchInputManager: @unchecked Sendable {
     }
 
     public func removeFallbackTouch(id: Int) {
+        lock.lock()
+        defer { lock.unlock() }
+        fallbackTouches.removeValue(forKey: id)
+    }
+
+    public func setAppKitTouch(id: Int, x: Float, y: Float, pressure: Float) {
+        lock.lock()
+        defer { lock.unlock() }
+        fallbackTouches[id] = TouchPoint(
+            id: id,
+            x: max(0.0, min(1.0, x)),
+            y: max(0.0, min(1.0, y)),
+            pressureGrams: max(30.0, pressure * 300.0),
+            normalizedPressure: max(0.1, min(1.0, pressure)),
+            area: 0.35,
+            isFromTrackpad: true
+        )
+    }
+
+    public func removeAppKitTouch(id: Int) {
         lock.lock()
         defer { lock.unlock() }
         fallbackTouches.removeValue(forKey: id)

@@ -70,6 +70,9 @@ public struct TrackpadRibbonView: View {
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
+                        if let pe = state.pluginEngine {
+                            TrautoniumPluginEngine.activeInstance = pe
+                        }
                         let nx = Float(max(0, min(1, value.location.x / geo.size.width)))
                         let ny = Float(max(0, min(1, value.location.y / geo.size.height)))
                         TouchInputManager.shared.setFallbackTouch(id: 9999, x: nx, y: ny, pressure: 0.75)

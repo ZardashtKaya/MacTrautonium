@@ -98,13 +98,15 @@ public:
         if (parent == nullptr) return kResultFalse;
         @autoreleasepool {
             NSView* parentView = (__bridge NSView*)parent;
-            NSView* trautoniumView = (__bridge NSView*)trautonium_create_view(mEngineHandle);
-            if (!trautoniumView) return kResultFalse;
+            void* viewHandle = trautonium_create_view(mEngineHandle);
+            if (!viewHandle) return kResultFalse;
 
-            mHostedView = (__bridge_retained void*)trautoniumView;
+            mHostedView = viewHandle;
+            NSView* trautoniumView = (__bridge NSView*)viewHandle;
             [parentView addSubview:trautoniumView];
             [trautoniumView setFrame:parentView.bounds];
             [trautoniumView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+            trautonium_set_active_instance(mEngineHandle);
         }
         return kResultOk;
     }

@@ -30,6 +30,13 @@ public final class TrautoniumPluginEngine: @unchecked Sendable {
     private var tempLeftBuffer: [Float]
     private var tempRightBuffer: [Float]
 
+    // Active instance coordination for multi-instance touch routing
+    public static nonisolated(unsafe) weak var activeInstance: TrautoniumPluginEngine?
+
+    // Touch & Pitch Tracking State
+    public var isTouchInputEnabled: Bool = true
+    private var pitchTrackers: [Int: PitchTracker] = [:]
+
     // MIDI & MPE state
     private struct ActiveNote {
         let channel: Int
@@ -63,6 +70,17 @@ public final class TrautoniumPluginEngine: @unchecked Sendable {
 
         self.tempLeftBuffer = [Float](repeating: 0, count: 4096)
         self.tempRightBuffer = [Float](repeating: 0, count: 4096)
+
+        if Self.activeInstance == nil {
+            Self.activeInstance = self
+        }
+        TouchInputManager.shared.start()
+    }
+
+    deinit {
+        if Self.activeInstance === self {
+            Self.activeInstance = nil
+        }
     }
 
     public func setSampleRate(_ newRate: Float) {
@@ -193,6 +211,7 @@ public final class TrautoniumPluginEngine: @unchecked Sendable {
     public func allNotesOff() {
         stateLock.lock()
         activeNotes.removeAll()
+        pitchTrackers.removeAll()
         stateLock.unlock()
         voiceManager.allNotesOff()
     }
@@ -202,6 +221,7 @@ public final class TrautoniumPluginEngine: @unchecked Sendable {
         activeNotes.removeAll()
         channelBends.removeAll()
         channelPressures.removeAll()
+        pitchTrackers.removeAll()
         stateLock.unlock()
         voiceManager.panic()
         delayEffect.reset()
@@ -219,6 +239,49 @@ public final class TrautoniumPluginEngine: @unchecked Sendable {
         if tempLeftBuffer.count < frameCount {
             tempLeftBuffer = [Float](repeating: 0, count: frameCount)
             tempRightBuffer = [Float](repeating: 0, count: frameCount)
+        }
+
+        let dt = Float(frameCount) / sampleRate
+
+        // Process hardware / fallback touch input if this instance is active for touches
+        let shouldProcessTouch = isTouchInputEnabled && (Self.activeInstance === self || Self.activeInstance == nil)
+        if shouldProcessTouch {
+            let touches = TouchInputManager.shared.getActiveTouches(prefs: activePrefs)
+            voiceManager.updateTouches(
+                touches: touches,
+                patch: activePatch,
+                prefs: activePrefs,
+                pitchTrackers: &pitchTrackers,
+                dt: dt,
+                onCrossedSemitone: { _ in
+                    if activePrefs.enableHaptics {
+                        MultitouchBridge.shared.triggerHaptic(strength: 2)
+                    }
+                }
+            )
+            let activeTouchIds = Set(touches.map { $0.id })
+            pitchTrackers = pitchTrackers.filter { activeTouchIds.contains($0.key) }
+        } else if !pitchTrackers.isEmpty {
+            pitchTrackers.removeAll()
+            for v in voiceManager.voices {
+                if v.isActive && v.ownerId < 10000 {
+                    v.releaseGate()
+                }
+            }
+        }
+
+        // Process MIDI Out / MPE if routing enabled
+        let routing = activePrefs.routingMode
+        let snapshots = voiceManager.getSnapshots()
+        if routing == .midiOut || routing == .both {
+            MIDIManager.shared.processSnapshots(snapshots, prefs: activePrefs)
+        }
+
+        // In pure MIDI Out routing mode, mute internal synth synthesis
+        if routing == .midiOut {
+            memset(left, 0, frameCount * MemoryLayout<Float>.size)
+            memset(right, 0, frameCount * MemoryLayout<Float>.size)
+            return
         }
 
         tempLeftBuffer.withUnsafeMutableBufferPointer { leftPtr in

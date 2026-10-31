@@ -40,14 +40,17 @@ public final class AppState: ObservableObject {
         if let pe = pluginEngine {
             self.patch = pe.patch
             self.prefs = pe.prefs
+            TrautoniumPluginEngine.activeInstance = pe
+            pe.isTouchInputEnabled = true
         } else {
             let engine = AudioEngineController.shared
             self.patch = engine.patch
             self.prefs = engine.prefs
             startEngine()
-            setupKeyMonitor()
         }
 
+        TouchInputManager.shared.start()
+        setupKeyMonitor()
         reloadUserPresets()
         refreshMIDIDestinations()
         setupDisplayTimer()
